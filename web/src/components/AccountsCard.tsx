@@ -2,10 +2,32 @@ import {
   Plus,
   ArrowUpRight,
 } from "lucide-react";
+import { useState } from "react";
+import AddAccountModal from "./AddAccountModal";
 
 import "./AccountsCard.css";
+interface Account {
+  name: string;
+  type: string;
+  balance: number;
+}
+interface AccountsCardProps {
+  accounts: Account[];
+  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
+}
 
-function AccountsCard() {
+function AccountsCard({
+  accounts,
+  setAccounts,
+}: AccountsCardProps) {
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const handleAddAccount = (account: Account) => {
+    setAccounts((currentAccounts) => [
+      ...currentAccounts,
+      account,
+    ]);
+  };
+
   return (
     <article className="accounts-card">
 
@@ -20,7 +42,10 @@ function AccountsCard() {
           </p>
         </div>
 
-        <button className="accounts-add-button">
+        <button
+          className="accounts-add-button"
+          onClick={() => setShowAddAccount(true)}
+        >
           <Plus size={16} />
         </button>
 
@@ -28,100 +53,46 @@ function AccountsCard() {
 
 
       {/* Accounts */}
-      <div className="accounts-list">
+        <div className="accounts-list">
 
-        {/* Cash */}
-        <div className="account-row">
+          {accounts.map((account) => (
+            <div
+              className="account-row"
+              key={account.name}
+            >
 
-          <div className="account-left">
+              <div className="account-left">
 
-            <div className="account-icon cash">
-              ₹
+                <div className={`account-icon ${account.type}`}>
+                  {account.type === "cash" && "₹"}
+                  {account.type === "bank" && "🏦"}
+                  {account.type === "wallet" && "💳"}
+                  {account.type === "savings" && "🎯"}
+                </div>
+
+                <div>
+                  <strong>
+                    {account.name}
+                  </strong>
+
+                  <span>
+                    {account.type === "cash" && "Physical money"}
+                    {account.type === "bank" && "Bank account"}
+                    {account.type === "wallet" && "Digital money"}
+                    {account.type === "savings" && "Long-term savings"}
+                  </span>
+                </div>
+
+              </div>
+
+              <strong>
+                ₹{account.balance.toLocaleString("en-IN")}
+              </strong>
+
             </div>
-
-            <div>
-              <strong>Cash</strong>
-              <span>Physical money</span>
-            </div>
-
-          </div>
-
-          <strong>
-            ₹5,000
-          </strong>
+          ))}
 
         </div>
-
-
-        {/* Bank */}
-        <div className="account-row">
-
-          <div className="account-left">
-
-            <div className="account-icon bank">
-              🏦
-            </div>
-
-            <div>
-              <strong>Bank Account</strong>
-              <span>Primary account</span>
-            </div>
-
-          </div>
-
-          <strong>
-            ₹35,420
-          </strong>
-
-        </div>
-
-
-        {/* Online Wallet */}
-        <div className="account-row">
-
-          <div className="account-left">
-
-            <div className="account-icon wallet">
-              💳
-            </div>
-
-            <div>
-              <strong>Online Wallet</strong>
-              <span>Digital money</span>
-            </div>
-
-          </div>
-
-          <strong>
-            ₹12,000
-          </strong>
-
-        </div>
-
-
-        {/* Savings */}
-        <div className="account-row">
-
-          <div className="account-left">
-
-            <div className="account-icon savings">
-              🎯
-            </div>
-
-            <div>
-              <strong>Savings Account</strong>
-              <span>Long-term savings</span>
-            </div>
-
-          </div>
-
-          <strong>
-            ₹23,000
-          </strong>
-
-        </div>
-
-      </div>
 
 
       {/* View all */}
@@ -134,8 +105,15 @@ function AccountsCard() {
         <ArrowUpRight size={15} />
 
       </button>
+      {showAddAccount && (
+        <AddAccountModal
+          onClose={() => setShowAddAccount(false)}
+          onAddAccount={handleAddAccount}
+        />
+      )}
 
     </article>
+    
   );
 }
 

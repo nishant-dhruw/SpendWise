@@ -1,10 +1,39 @@
 import "./RecentTransactions.css";
+import { useState } from "react";
+import AddTransactionModal from "./AddTransactionModal";
 
-function RecentTransactions() {
+interface Transaction {
+  id: number;
+  type: "income" | "expense";
+  category: string;
+  description: string;
+  amount: number;
+  date: string;
+  accountName: string;
+}
+
+interface Account {
+  name: string;
+  type: string;
+  balance: number;
+}
+
+interface RecentTransactionsProps {
+  transactions: Transaction[];
+  onAddTransaction: (transaction: Transaction) => void;
+  accounts: Account[];
+}
+
+function RecentTransactions({
+  transactions,
+  onAddTransaction,
+  accounts,
+}: RecentTransactionsProps) {
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+
   return (
     <article className="transactions-card">
 
-      {/* Header */}
       <div className="transactions-card-header">
 
         <div>
@@ -15,108 +44,87 @@ function RecentTransactions() {
           </p>
         </div>
 
-        <button className="view-transactions-button">
-          View all
-        </button>
+        <div className="transactions-header-actions">
+
+          <button
+            className="add-transaction-button"
+            onClick={() => setShowAddTransaction(true)}
+          >
+            + Add
+          </button>
+
+          <button className="view-transactions-button">
+            View all
+          </button>
+
+        </div>
 
       </div>
 
 
-      {/* Transactions */}
       <div className="transactions-list">
 
-        {/* Food */}
-        <div className="transaction-row">
+        {transactions.map((transaction) => (
 
-          <div className="transaction-left">
+          <div
+            className="transaction-row"
+            key={transaction.id}
+          >
 
-            <div className="transaction-icon food">
-              🍔
+            <div className="transaction-left">
+
+              <div
+                className={`transaction-icon ${transaction.category}`}
+              >
+                {transaction.category === "food" && "🍔"}
+                {transaction.category === "transport" && "🚕"}
+                {transaction.category === "shopping" && "🛍️"}
+                {transaction.category === "salary" && "💼"}
+                {transaction.category === "bills" && "💡"}
+                {transaction.category === "entertainment" && "🎮"}
+                {transaction.category === "health" && "🏥"}
+                {transaction.category === "freelance" && "💻"}
+                {transaction.category === "other" && "💰"}
+              </div>
+
+              <div>
+
+                <strong>
+                  {transaction.description}
+                </strong>
+
+                <span>
+                  {transaction.date}
+                </span>
+
+              </div>
+
             </div>
 
-            <div>
-              <strong>Food & Dining</strong>
-              <span>Today · 1:20 PM</span>
-            </div>
+
+            <strong
+              className={
+                transaction.type === "income"
+                  ? "transaction-income"
+                  : "transaction-expense"
+              }
+            >
+              {transaction.type === "income" ? "+" : "-"}
+              ₹{transaction.amount.toLocaleString("en-IN")}
+            </strong>
 
           </div>
 
-          <strong className="transaction-expense">
-            -₹250
-          </strong>
-
-        </div>
-
-
-        {/* Transport */}
-        <div className="transaction-row">
-
-          <div className="transaction-left">
-
-            <div className="transaction-icon transport">
-              🚕
-            </div>
-
-            <div>
-              <strong>Transport</strong>
-              <span>Today · 10:15 AM</span>
-            </div>
-
-          </div>
-
-          <strong className="transaction-expense">
-            -₹120
-          </strong>
-
-        </div>
-
-
-        {/* Salary */}
-        <div className="transaction-row">
-
-          <div className="transaction-left">
-
-            <div className="transaction-icon salary">
-              💼
-            </div>
-
-            <div>
-              <strong>Salary</strong>
-              <span>Yesterday · 9:00 AM</span>
-            </div>
-
-          </div>
-
-          <strong className="transaction-income">
-            +₹35,000
-          </strong>
-
-        </div>
-
-
-        {/* Shopping */}
-        <div className="transaction-row">
-
-          <div className="transaction-left">
-
-            <div className="transaction-icon shopping">
-              🛍️
-            </div>
-
-            <div>
-              <strong>Shopping</strong>
-              <span>Yesterday · 6:40 PM</span>
-            </div>
-
-          </div>
-
-          <strong className="transaction-expense">
-            -₹850
-          </strong>
-
-        </div>
+        ))}
 
       </div>
+      {showAddTransaction && (
+        <AddTransactionModal
+          onClose={() => setShowAddTransaction(false)}
+          onAddTransaction={onAddTransaction}
+          accounts={accounts}
+        />
+      )}
 
     </article>
   );

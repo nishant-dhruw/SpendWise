@@ -50,6 +50,7 @@
 /* View all */
 
 .view-transactions-button {
+
   color: #059669;
 
   background: transparent;
@@ -57,13 +58,56 @@
   border: none;
 
   font-size: 9px;
+
   font-weight: 700;
 
   cursor: pointer;
+
 }
 
 .view-transactions-button:hover {
+
   text-decoration: underline;
+
+}
+
+
+/* Add transaction button */
+
+.transactions-header-actions {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+}
+
+.add-transaction-button {
+
+  padding: 7px 12px;
+
+  color: #059669;
+
+  background: #eaf9f3;
+
+  border: none;
+
+  border-radius: 7px;
+
+  font-size: 9px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+}
+
+.add-transaction-button:hover {
+
+  background: #dff5eb;
+
 }
 
 
