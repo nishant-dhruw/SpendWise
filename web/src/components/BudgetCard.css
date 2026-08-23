@@ -1,0 +1,196 @@
+/* =========================================================
+   BUDGET CARD
+========================================================= */
+
+.budget-card {
+  padding: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #edf2ef;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 7px 22px rgba(15, 23, 42, 0.035);
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.budget-card-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.budget-card-header h3 {
+  margin: 0;
+
+  color: #14213d;
+
+  font-size: 14px;
+}
+
+.budget-card-header p {
+  margin: 4px 0 0;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+
+/* Menu */
+
+.budget-menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 3px;
+
+  color: #64748b;
+
+  background: transparent;
+
+  border: none;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.budget-menu-button:hover {
+  color: #059669;
+
+  background: #f0faf6;
+}
+
+
+/* =========================================================
+   TOTAL
+========================================================= */
+
+.budget-total {
+  display: flex;
+
+  align-items: baseline;
+
+  gap: 5px;
+
+  margin-top: 25px;
+}
+
+.budget-total strong {
+  color: #14213d;
+
+  font-size: 24px;
+
+  letter-spacing: -0.5px;
+}
+
+.budget-total span {
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.budget-progress {
+  width: 100%;
+
+  height: 8px;
+
+  margin-top: 14px;
+
+  overflow: hidden;
+
+  background: #e8f0ec;
+
+  border-radius: 10px;
+}
+
+.budget-progress-fill {
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #10b981,
+      #f59e0b
+    );
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.budget-footer {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-top: 8px;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+.budget-footer strong {
+  color: #059669;
+}
+
+
+/* =========================================================
+   WARNING
+========================================================= */
+
+.budget-warning {
+  margin-top: 20px;
+
+  padding: 9px;
+
+  color: #a16207;
+
+  background: #fff8e8;
+
+  border-radius: 8px;
+
+  font-size: 9px;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 750px) {
+
+  .budget-card {
+    padding: 17px;
+  }
+
+  .budget-total strong {
+    font-size: 21px;
+  }
+
+}

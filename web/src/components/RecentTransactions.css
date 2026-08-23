@@ -1,0 +1,193 @@
+/* =========================================================
+   RECENT TRANSACTIONS
+========================================================= */
+
+.transactions-card {
+  padding: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #edf2ef;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 7px 22px rgba(15, 23, 42, 0.035);
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.transactions-card-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.transactions-card-header h3 {
+  margin: 0;
+
+  color: #14213d;
+
+  font-size: 14px;
+}
+
+.transactions-card-header p {
+  margin: 4px 0 0;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+
+/* View all */
+
+.view-transactions-button {
+  color: #059669;
+
+  background: transparent;
+
+  border: none;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.view-transactions-button:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   TRANSACTIONS LIST
+========================================================= */
+
+.transactions-list {
+  margin-top: 12px;
+}
+
+.transaction-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #f0f3f1;
+}
+
+.transaction-row:last-child {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   LEFT SIDE
+========================================================= */
+
+.transaction-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.transaction-icon {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  font-size: 13px;
+}
+
+.transaction-icon.food {
+  background: #fff1eb;
+}
+
+.transaction-icon.transport {
+  background: #edf6ff;
+}
+
+.transaction-icon.salary {
+  background: #e9f9f1;
+}
+
+.transaction-icon.shopping {
+  background: #f4edff;
+}
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.transaction-left strong {
+  display: block;
+
+  color: #1e293b;
+
+  font-size: 10px;
+}
+
+.transaction-left span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #9aa6b4;
+
+  font-size: 8px;
+}
+
+
+/* =========================================================
+   AMOUNT
+========================================================= */
+
+.transaction-expense {
+  color: #ef4444;
+
+  font-size: 10px;
+}
+
+.transaction-income {
+  color: #059669;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 750px) {
+
+  .transactions-card {
+    padding: 17px;
+  }
+
+}

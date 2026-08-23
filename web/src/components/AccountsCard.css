@@ -1,0 +1,225 @@
+/* =========================================================
+   ACCOUNTS CARD
+========================================================= */
+
+.accounts-card {
+  padding: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #edf2ef;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 7px 22px rgba(15, 23, 42, 0.035);
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.accounts-card-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.accounts-card-header h3 {
+  margin: 0;
+
+  color: #14213d;
+
+  font-size: 14px;
+}
+
+.accounts-card-header p {
+  margin: 4px 0 0;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+
+/* Add button */
+
+.accounts-add-button {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #059669;
+
+  background: #eaf9f3;
+
+  border: none;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.accounts-add-button:hover {
+  background: #d8f4e8;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   ACCOUNT LIST
+========================================================= */
+
+.accounts-list {
+  margin-top: 13px;
+}
+
+.account-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 11px 0;
+
+  border-bottom: 1px solid #f0f3f1;
+}
+
+.account-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+/* =========================================================
+   ACCOUNT ICONS
+========================================================= */
+
+.account-icon {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  font-size: 13px;
+}
+
+.account-icon.cash {
+  background: #e9f9f1;
+}
+
+.account-icon.bank {
+  background: #edf4ff;
+}
+
+.account-icon.wallet {
+  background: #fff4e7;
+}
+
+.account-icon.savings {
+  background: #f2edff;
+}
+
+
+/* =========================================================
+   ACCOUNT TEXT
+========================================================= */
+
+.account-left strong {
+  display: block;
+
+  color: #1e293b;
+
+  font-size: 10px;
+}
+
+.account-left span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #9aa6b4;
+
+  font-size: 8px;
+}
+
+.account-row > strong {
+  color: #1e293b;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   VIEW ALL
+========================================================= */
+
+.view-all-accounts {
+  width: 100%;
+
+  margin-top: 13px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 8px;
+
+  color: #059669;
+
+  background: #f0faf6;
+
+  border: none;
+
+  border-radius: 8px;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+.view-all-accounts:hover {
+  background: #e3f7ee;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 750px) {
+
+  .accounts-card {
+    padding: 17px;
+  }
+
+}

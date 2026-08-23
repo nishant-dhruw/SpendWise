@@ -1,0 +1,231 @@
+/* =========================================================
+   SPENDING OVERVIEW
+========================================================= */
+
+.spending-overview-card {
+  min-height: 390px;
+
+  padding: 22px;
+
+  background: #ffffff;
+
+  border: 1px solid #edf2ef;
+
+  border-radius: 17px;
+
+  box-shadow:
+    0 5px 18px rgba(15, 23, 42, 0.03);
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.spending-overview-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+}
+
+.spending-overview-header h3 {
+  margin: 0;
+
+  color: #14213d;
+
+  font-size: 16px;
+}
+
+.spending-overview-header p {
+  margin: 3px 0 0;
+
+  color: #94a3b8;
+
+  font-size: 10px;
+}
+
+
+/* Period selector */
+
+.spending-period {
+  padding: 8px 11px;
+
+  color: #64748b;
+
+  background: white;
+
+  border: 1px solid #e4ebe8;
+
+  border-radius: 9px;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  outline: none;
+}
+
+.spending-period:focus {
+  border-color: #10b981;
+}
+
+
+/* =========================================================
+   CHART
+========================================================= */
+
+.spending-chart {
+  display: flex;
+
+  height: 250px;
+
+  margin-top: 18px;
+}
+
+.chart-y-axis {
+  width: 45px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  padding: 3px 5px 24px 0;
+
+  color: #9aa7b6;
+
+  font-size: 9px;
+
+  text-align: right;
+}
+
+.chart-area {
+  position: relative;
+
+  flex: 1;
+
+  overflow: hidden;
+}
+
+
+/* Grid */
+
+.chart-grid-lines {
+  position: absolute;
+
+  inset: 0 0 28px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+}
+
+.chart-grid-lines span {
+  width: 100%;
+
+  height: 1px;
+
+  background: #edf2ef;
+}
+
+
+/* SVG */
+
+.chart-svg {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 100%;
+  height: calc(100% - 28px);
+}
+
+
+/* Months */
+
+.chart-months {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  color: #9aa7b6;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   LEGEND
+========================================================= */
+
+.chart-legend {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  margin-top: 5px;
+
+  color: #64748b;
+
+  font-size: 10px;
+}
+
+.chart-legend span {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+}
+
+.chart-legend i {
+  width: 8px;
+  height: 8px;
+
+  display: inline-block;
+
+  border-radius: 50%;
+}
+
+.legend-income {
+  background: #10b981;
+}
+
+.legend-expense {
+  background: #f59e0b;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 750px) {
+
+  .spending-overview-card {
+    min-height: 330px;
+
+    padding: 17px;
+  }
+
+  .spending-chart {
+    height: 210px;
+  }
+
+}
