@@ -1,0 +1,460 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  WalletCards,
+  TrendingUp,
+  Target,
+  BarChart3,
+  ArrowRight,
+  ShieldCheck,
+  PieChart,
+  Eye,
+  EyeOff,
+  Mail,
+  LockKeyhole,
+  MoreHorizontal,
+} from "lucide-react";
+
+import "./Login.css";
+
+function Login() {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <main className="login-page">
+
+      {/* Decorative background */}
+      <div className="decorative-orb orb-top-left"></div>
+      <div className="decorative-orb orb-bottom-right"></div>
+
+      <div className="decorative-dots dots-one"></div>
+      <div className="decorative-dots dots-two"></div>
+
+
+      <div className="login-layout">
+
+        {/* =====================================================
+            LEFT SIDE
+        ===================================================== */}
+
+        <section className="login-hero">
+
+          {/* Brand */}
+
+          <div className="hero-brand">
+
+            <div className="hero-logo">
+              <WalletCards size={28} />
+            </div>
+
+            <div>
+              <h1>
+                Spend<span>Wise</span>
+              </h1>
+
+              <p>
+                Know where your money goes.
+              </p>
+            </div>
+
+          </div>
+
+
+          {/* Hero */}
+
+          <div className="hero-content">
+
+            <div className="hero-badge">
+              PERSONAL FINANCE, SIMPLIFIED
+            </div>
+
+            <h2>
+              Take control of
+              <span>your finances.</span>
+            </h2>
+
+            <p className="hero-description">
+              Track your spending, manage your money, set goals,
+              and build better financial habits — all in one place.
+            </p>
+
+
+            {/* Features */}
+
+            <div className="feature-grid">
+
+              <div className="feature-item">
+
+                <div className="feature-icon">
+                  <TrendingUp size={20} />
+                </div>
+
+                <div>
+                  <h3>Track Expenses</h3>
+                  <p>Know where every rupee goes.</p>
+                </div>
+
+              </div>
+
+
+              <div className="feature-item">
+
+                <div className="feature-icon">
+                  <WalletCards size={20} />
+                </div>
+
+                <div>
+                  <h3>Manage Your Money</h3>
+                  <p>Keep all your accounts in one place.</p>
+                </div>
+
+              </div>
+
+
+              <div className="feature-item">
+
+                <div className="feature-icon">
+                  <Target size={20} />
+                </div>
+
+                <div>
+                  <h3>Achieve Your Goals</h3>
+                  <p>Save today for what matters tomorrow.</p>
+                </div>
+
+              </div>
+
+
+              <div className="feature-item">
+
+                <div className="feature-icon">
+                  <BarChart3 size={20} />
+                </div>
+
+                <div>
+                  <h3>Understand Spending</h3>
+                  <p>Turn your data into useful insights.</p>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Finance Preview */}
+
+            <div className="finance-preview">
+
+              {/* Monthly chart */}
+
+              <div className="preview-card spending-card">
+
+                <div className="preview-header">
+
+                  <div>
+                    <span>Monthly overview</span>
+                    <strong>₹42,650</strong>
+                  </div>
+
+                  <MoreHorizontal size={18} />
+
+                </div>
+
+                <p className="preview-label">
+                  Total spending
+                </p>
+
+
+                <div className="line-chart">
+
+                  <div className="chart-line"></div>
+
+                  <div className="chart-bars">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              {/* Category preview */}
+
+              <div className="preview-card category-card">
+
+                <div className="category-title">
+                  <PieChart size={19} />
+                  <span>Spending by category</span>
+                </div>
+
+                <div className="category-content">
+
+                  <div className="donut-chart">
+                    <div className="donut-hole">
+                      100%
+                    </div>
+                  </div>
+
+                  <div className="category-list">
+
+                    <div>
+                      <i className="dot food"></i>
+                      <span>Food</span>
+                      <strong>₹12,450</strong>
+                    </div>
+
+                    <div>
+                      <i className="dot transport"></i>
+                      <span>Transport</span>
+                      <strong>₹8,500</strong>
+                    </div>
+
+                    <div>
+                      <i className="dot shopping"></i>
+                      <span>Shopping</span>
+                      <strong>₹6,500</strong>
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        {/* =====================================================
+            RIGHT SIDE
+        ===================================================== */}
+
+        <section className="login-section">
+
+          <div className="login-card">
+
+            {/* Mobile brand */}
+
+            <div className="mobile-brand">
+
+              <div className="mobile-logo">
+                <WalletCards size={23} />
+              </div>
+
+              <div>
+                <strong>SpendWise</strong>
+                <span>Know where your money goes.</span>
+              </div>
+
+            </div>
+
+
+            {/* Login icon */}
+
+            <div className="login-icon-wrapper">
+
+              <div className="login-icon-ring">
+
+                <div className="login-card-icon">
+                  <WalletCards size={25} />
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Heading */}
+
+            <div className="login-card-header">
+
+              <h2>
+                Welcome back
+              </h2>
+
+              <p>
+                Sign in to continue managing your finances.
+              </p>
+
+            </div>
+
+
+            {/* Form */}
+
+            <form className="login-form">
+
+              {/* Email */}
+
+              <div className="form-group">
+
+                <label htmlFor="email">
+                  Email address
+                </label>
+
+                <div className="input-wrapper">
+
+                  <Mail
+                    size={18}
+                    className="input-icon"
+                  />
+
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+
+                </div>
+
+              </div>
+
+
+              {/* Password */}
+
+              <div className="form-group">
+
+                <div className="password-label">
+
+                  <label htmlFor="password">
+                    Password
+                  </label>
+
+                  <a href="#">
+                    Forgot password?
+                  </a>
+
+                </div>
+
+
+                <div className="input-wrapper">
+
+                  <LockKeyhole
+                    size={18}
+                    className="input-icon"
+                  />
+
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                  />
+
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowPassword(!showPassword)
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+
+                  </button>
+
+                </div>
+
+              </div>
+
+
+              {/* Remember */}
+
+              <label className="remember-option">
+
+                <input type="checkbox" />
+
+                <span>
+                  Remember me
+                </span>
+
+              </label>
+
+
+              {/* Submit */}
+
+              <button
+                type="submit"
+                className="login-button"
+              >
+
+                <span>
+                  Sign in
+                </span>
+
+                <ArrowRight size={19} />
+
+              </button>
+
+            </form>
+
+
+            {/* Divider */}
+
+            <div className="login-divider">
+              <span>or</span>
+            </div>
+
+
+            {/* Security */}
+
+            <div className="login-security">
+
+              <ShieldCheck size={17} />
+
+              <span>
+                Your financial data stays private.
+              </span>
+
+            </div>
+
+
+            {/* Register */}
+
+            <div className="register-section">
+
+              <span>
+                Don't have an account?
+              </span>
+
+              <Link to="/register">
+                Create account
+              </Link>
+
+            </div>
+
+          </div>
+
+
+          <p className="login-footer">
+            © 2026 SpendWise. All rights reserved.
+          </p>
+
+        </section>
+
+      </div>
+
+    </main>
+  );
+}
+
+export default Login;
