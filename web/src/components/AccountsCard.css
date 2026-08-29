@@ -223,3 +223,32 @@
   }
 
 }
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-delete-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: 0.2s ease;
+}
+
+.account-row:hover .account-delete-button {
+  opacity: 1;
+}
+
+.account-delete-button:hover {
+  background: #fee2e2;
+}

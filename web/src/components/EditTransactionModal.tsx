@@ -1,192 +1,75 @@
 import { X } from "lucide-react";
 import { useState } from "react";
-
 import "./AddTransactionModal.css";
 import AlertModal from "./AlertModal";
 
-
 interface Transaction {
   id: number;
-
   type: "income" | "expense";
-
   category: string;
-
   description: string;
-
   amount: number;
-
   date: string;
-
   accountName: string;
 }
 
-
 interface Account {
   name: string;
-
   type: string;
-
   balance: number;
 }
 
-
-interface AddTransactionModalProps {
-  onClose: () => void;
-
-  onAddTransaction:
-    (transaction: Transaction) => void;
-
-  onEditTransaction?: (
-    oldTransaction: Transaction,
-    updatedTransaction: Transaction
-  ) => void;
-
-  transactionToEdit?: Transaction | null;
-
+interface EditTransactionModalProps {
+  transaction: Transaction;
   accounts: Account[];
+  onClose: () => void;
+  onSaveTransaction: (transaction: Transaction) => void;
 }
 
-
-// =========================================================
-// GET TODAY'S DATE IN LOCAL FORMAT
-// =========================================================
-
-const getTodayDate = () => {
-
-  const today =
-    new Date();
-
-  const year =
-    today.getFullYear();
-
-  const month =
-    String(
-      today.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
-
-  const day =
-    String(
-      today.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
-
-  return `${year}-${month}-${day}`;
-
-};
-
-
-// =========================================================
-// COMPONENT
-// =========================================================
-
-function AddTransactionModal({
-
-  onClose,
-
-  onAddTransaction,
-
-  onEditTransaction,
-
-  transactionToEdit,
-
+function EditTransactionModal({
+  transaction,
   accounts,
-
-}: AddTransactionModalProps) {
-
-
-  // =========================================================
-  // FORM STATE
-  // =========================================================
+  onClose,
+  onSaveTransaction,
+}: EditTransactionModalProps) {
 
   const [type, setType] =
-    useState<"income" | "expense">(
-      transactionToEdit?.type ||
-      "expense"
-    );
-
+    useState<"income" | "expense">(transaction.type);
 
   const [category, setCategory] =
-    useState(
-      transactionToEdit?.category ||
-      ""
-    );
-
+    useState(transaction.category);
 
   const [description, setDescription] =
-    useState(
-      transactionToEdit?.description ||
-      ""
-    );
-
+    useState(transaction.description);
 
   const [amount, setAmount] =
-    useState(
-      transactionToEdit
-        ? String(
-            transactionToEdit.amount
-          )
-        : ""
-    );
-
+    useState(String(transaction.amount));
 
   const [date, setDate] =
-    useState(
-      transactionToEdit?.date ||
-      getTodayDate()
-    );
-
+    useState(transaction.date);
 
   const [accountName, setAccountName] =
-    useState(
-      transactionToEdit?.accountName ||
-      accounts[0]?.name ||
-      ""
-    );
-
-
-  // =========================================================
-  // ALERT STATE
-  // =========================================================
+    useState(transaction.accountName);
 
   const [showAlert, setShowAlert] =
     useState(false);
 
-
   const [alertTitle, setAlertTitle] =
     useState("");
-
 
   const [alertMessage, setAlertMessage] =
     useState("");
 
 
-  // =========================================================
-  // SHOW ERROR
-  // =========================================================
-
   const showError = (
     title: string,
     message: string
   ) => {
-
     setAlertTitle(title);
-
     setAlertMessage(message);
-
     setShowAlert(true);
-
   };
 
-
-  // =========================================================
-  // SUBMIT
-  // =========================================================
 
   const handleSubmit = (
     e: React.FormEvent
@@ -195,9 +78,7 @@ function AddTransactionModal({
     e.preventDefault();
 
 
-    // =========================================================
-    // VALIDATE CATEGORY
-    // =========================================================
+    // ================= VALIDATION =================
 
     if (!category) {
 
@@ -207,13 +88,8 @@ function AddTransactionModal({
       );
 
       return;
-
     }
 
-
-    // =========================================================
-    // VALIDATE DESCRIPTION
-    // =========================================================
 
     if (!description.trim()) {
 
@@ -223,21 +99,10 @@ function AddTransactionModal({
       );
 
       return;
-
     }
 
 
-    // =========================================================
-    // VALIDATE AMOUNT
-    // =========================================================
-
-    if (
-      !amount ||
-      !Number.isFinite(
-        Number(amount)
-      ) ||
-      Number(amount) <= 0
-    ) {
+    if (!amount || Number(amount) <= 0) {
 
       showError(
         "Invalid Amount",
@@ -245,122 +110,91 @@ function AddTransactionModal({
       );
 
       return;
+    }
+
+
+    // ================= BALANCE CHECK =================
+
+    /*
+      The old transaction is still affecting
+      the account balance.
+
+      We first remove the old transaction's
+      effect, then apply the new transaction.
+    */
+
+    const oldAccount = accounts.find(
+      (account) =>
+        account.name === transaction.accountName
+    );
+
+
+    let availableBalance =
+      oldAccount?.balance ?? 0;
+
+
+    // Remove old transaction effect
+
+    if (transaction.type === "income") {
+
+      availableBalance -= transaction.amount;
+
+    } else {
+
+      availableBalance += transaction.amount;
 
     }
 
 
-    // =========================================================
-    // VALIDATE ACCOUNT
-    // =========================================================
-
-    if (!accountName) {
-
-      showError(
-        "Account Required",
-        "Please select an account for this transaction."
-      );
-
-      return;
-
-    }
-
-
-    // =========================================================
-    // VALIDATE DATE
-    // =========================================================
-
-    if (!date) {
-
-      showError(
-        "Date Required",
-        "Please select a transaction date."
-      );
-
-      return;
-
-    }
-
-
-    // =========================================================
-    // CHECK ACCOUNT BALANCE
-    // =========================================================
+    // Check new expense
 
     if (type === "expense") {
 
-      const selectedAccount =
-        accounts.find(
-          (account) =>
-            account.name ===
-            accountName
-        );
+      const selectedAccount = accounts.find(
+        (account) =>
+          account.name === accountName
+      );
 
 
-      let availableBalance =
-        selectedAccount?.balance || 0;
+      if (selectedAccount) {
 
+        /*
+          If the account is the same account,
+          availableBalance already contains
+          the restored old transaction.
 
-      // =====================================================
-      // EDITING TRANSACTION
-      //
-      // Restore the old transaction effect when the old
-      // transaction belongs to the same account.
-      // =====================================================
+          If it is a different account,
+          use its current balance.
+        */
 
-      if (
-        transactionToEdit &&
-        transactionToEdit.accountName ===
-          accountName
-      ) {
+        const balanceToCheck =
+          transaction.accountName === accountName
+            ? availableBalance
+            : selectedAccount.balance;
+
 
         if (
-          transactionToEdit.type ===
-          "expense"
+          Number(amount) > balanceToCheck
         ) {
 
-          availableBalance +=
-            transactionToEdit.amount;
+          showError(
+            "Insufficient Balance",
+            `You don't have enough money in ${selectedAccount.name}. Available balance: ₹${balanceToCheck.toLocaleString("en-IN")}.`
+          );
 
-        } else {
-
-          availableBalance -=
-            transactionToEdit.amount;
-
+          return;
         }
 
       }
 
-
-      if (
-        selectedAccount &&
-        Number(amount) >
-          availableBalance
-      ) {
-
-        showError(
-          "Insufficient Balance",
-          `You don't have enough money in ${selectedAccount.name}. Available balance: ₹${availableBalance.toLocaleString(
-            "en-IN"
-          )}.`
-        );
-
-        return;
-
-      }
-
     }
 
 
-    // =========================================================
-    // CREATE UPDATED TRANSACTION
-    // =========================================================
+    // ================= UPDATED TRANSACTION =================
 
-    const updatedTransaction:
-      Transaction = {
+    const updatedTransaction: Transaction = {
 
-      // Keep the same ID when editing
-      id:
-        transactionToEdit?.id ||
-        Date.now(),
+      id: transaction.id,
 
       type,
 
@@ -372,7 +206,6 @@ function AddTransactionModal({
       amount:
         Number(amount),
 
-      // Stored consistently as YYYY-MM-DD
       date,
 
       accountName,
@@ -380,37 +213,14 @@ function AddTransactionModal({
     };
 
 
-    // =========================================================
-    // SAVE TRANSACTION
-    // =========================================================
-
-    if (
-      transactionToEdit &&
-      onEditTransaction
-    ) {
-
-      onEditTransaction(
-        transactionToEdit,
-        updatedTransaction
-      );
-
-    } else {
-
-      onAddTransaction(
-        updatedTransaction
-      );
-
-    }
-
+    onSaveTransaction(
+      updatedTransaction
+    );
 
     onClose();
 
   };
 
-
-  // =========================================================
-  // RENDER
-  // =========================================================
 
   return (
 
@@ -426,30 +236,18 @@ function AddTransactionModal({
         }
       >
 
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* ================= HEADER ================= */}
 
         <div className="transaction-modal-header">
 
           <div>
 
             <h2>
-
-              {transactionToEdit
-                ? "Edit Transaction"
-                : "Add Transaction"}
-
+              Edit Transaction
             </h2>
 
-
             <p>
-
-              {transactionToEdit
-                ? "Update your transaction details."
-                : "Record your income or expense."}
-
+              Update your income or expense.
             </p>
 
           </div>
@@ -468,24 +266,20 @@ function AddTransactionModal({
         </div>
 
 
-        {/* =================================================
-            FORM
-        ================================================= */}
+        {/* ================= FORM ================= */}
 
         <form
           className="transaction-form"
           onSubmit={handleSubmit}
         >
 
-
-          {/* TRANSACTION TYPE */}
+          {/* ================= TYPE ================= */}
 
           <div className="transaction-form-group">
 
             <label>
-              Transaction Type
+              Transaction type
             </label>
-
 
             <select
               value={type}
@@ -502,7 +296,6 @@ function AddTransactionModal({
                 Expense
               </option>
 
-
               <option value="income">
                 Income
               </option>
@@ -512,14 +305,13 @@ function AddTransactionModal({
           </div>
 
 
-          {/* CATEGORY */}
+          {/* ================= CATEGORY ================= */}
 
           <div className="transaction-form-group">
 
             <label>
               Category
             </label>
-
 
             <select
               value={category}
@@ -530,53 +322,41 @@ function AddTransactionModal({
               }
             >
 
-              <option
-                value=""
-                disabled
-              >
+              <option value="" disabled>
                 Select category
               </option>
-
 
               <option value="food">
                 Food & Dining
               </option>
 
-
               <option value="transport">
                 Transport
               </option>
-
 
               <option value="shopping">
                 Shopping
               </option>
 
-
               <option value="bills">
                 Bills & Utilities
               </option>
-
 
               <option value="entertainment">
                 Entertainment
               </option>
 
-
               <option value="health">
                 Health
               </option>
-
 
               <option value="salary">
                 Salary
               </option>
 
-
               <option value="freelance">
                 Freelance
               </option>
-
 
               <option value="other">
                 Other
@@ -587,14 +367,13 @@ function AddTransactionModal({
           </div>
 
 
-          {/* DESCRIPTION */}
+          {/* ================= DESCRIPTION ================= */}
 
           <div className="transaction-form-group">
 
             <label>
               Description
             </label>
-
 
             <input
               type="text"
@@ -610,7 +389,7 @@ function AddTransactionModal({
           </div>
 
 
-          {/* AMOUNT */}
+          {/* ================= AMOUNT ================= */}
 
           <div className="transaction-form-group">
 
@@ -618,19 +397,16 @@ function AddTransactionModal({
               Amount
             </label>
 
-
             <div className="transaction-amount-input">
 
               <span>
                 ₹
               </span>
 
-
               <input
                 type="number"
                 placeholder="0"
-                min="1"
-                step="1"
+                min="0"
                 value={amount}
                 onChange={(e) =>
                   setAmount(
@@ -644,14 +420,13 @@ function AddTransactionModal({
           </div>
 
 
-          {/* ACCOUNT */}
+          {/* ================= ACCOUNT ================= */}
 
           <div className="transaction-form-group">
 
             <label>
               Account
             </label>
-
 
             <select
               value={accountName}
@@ -669,21 +444,14 @@ function AddTransactionModal({
                 Select account
               </option>
 
-
               {accounts.map(
                 (account) => (
 
                   <option
-                    key={
-                      account.name
-                    }
-                    value={
-                      account.name
-                    }
+                    key={account.name}
+                    value={account.name}
                   >
-
                     {account.name}
-
                   </option>
 
                 )
@@ -694,7 +462,7 @@ function AddTransactionModal({
           </div>
 
 
-          {/* DATE */}
+          {/* ================= DATE ================= */}
 
           <div className="transaction-form-group">
 
@@ -702,11 +470,9 @@ function AddTransactionModal({
               Date
             </label>
 
-
             <input
               type="date"
               value={date}
-              max={getTodayDate()}
               onChange={(e) =>
                 setDate(
                   e.target.value
@@ -717,7 +483,7 @@ function AddTransactionModal({
           </div>
 
 
-          {/* ACTIONS */}
+          {/* ================= BUTTONS ================= */}
 
           <div className="transaction-modal-actions">
 
@@ -734,11 +500,7 @@ function AddTransactionModal({
               type="submit"
               className="transaction-add-button"
             >
-
-              {transactionToEdit
-                ? "Save Changes"
-                : "Add Transaction"}
-
+              Save Changes
             </button>
 
           </div>
@@ -748,9 +510,7 @@ function AddTransactionModal({
       </div>
 
 
-      {/* =================================================
-          ALERT
-      ================================================= */}
+      {/* ================= ALERT ================= */}
 
       {showAlert && (
 
@@ -760,9 +520,7 @@ function AddTransactionModal({
           onClose={() => {
 
             setShowAlert(false);
-
             setAlertTitle("");
-
             setAlertMessage("");
 
           }}
@@ -776,5 +534,4 @@ function AddTransactionModal({
 
 }
 
-
-export default AddTransactionModal;
+export default EditTransactionModal;

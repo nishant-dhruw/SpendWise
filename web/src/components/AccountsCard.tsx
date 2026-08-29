@@ -1,9 +1,11 @@
 import {
   Plus,
   ArrowUpRight,
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import AddAccountModal from "./AddAccountModal";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 import "./AccountsCard.css";
 interface Account {
@@ -21,12 +23,35 @@ function AccountsCard({
   setAccounts,
 }: AccountsCardProps) {
   const [showAddAccount, setShowAddAccount] = useState(false);
+
+  const [accountToDelete, setAccountToDelete] =
+    useState<Account | null>(null);
   const handleAddAccount = (account: Account) => {
     setAccounts((currentAccounts) => [
       ...currentAccounts,
       account,
     ]);
   };
+
+  const handleDeleteAccount = (account: Account) => {
+      setAccountToDelete(account);
+    };
+
+    const confirmDeleteAccount = () => {
+
+      if (!accountToDelete) {
+        return;
+      }
+
+      setAccounts((currentAccounts) =>
+        currentAccounts.filter(
+          (currentAccount) =>
+            currentAccount !== accountToDelete
+        )
+      );
+
+      setAccountToDelete(null);
+    };
 
   return (
     <article className="accounts-card">
@@ -85,9 +110,21 @@ function AccountsCard({
 
               </div>
 
-              <strong>
-                ₹{account.balance.toLocaleString("en-IN")}
-              </strong>
+              <div className="account-actions">
+
+                <strong>
+                  ₹{account.balance.toLocaleString("en-IN")}
+                </strong>
+
+                <button
+                  className="account-delete-button"
+                  onClick={() => handleDeleteAccount(account)}
+                  title="Delete account"
+                >
+                  <Trash2 size={16} />
+                </button>
+
+              </div>
 
             </div>
           ))}
@@ -109,6 +146,14 @@ function AccountsCard({
         <AddAccountModal
           onClose={() => setShowAddAccount(false)}
           onAddAccount={handleAddAccount}
+        />
+      )}
+
+      {accountToDelete && (
+        <DeleteAccountModal
+          account={accountToDelete}
+          onClose={() => setAccountToDelete(null)}
+          onConfirm={confirmDeleteAccount}
         />
       )}
 

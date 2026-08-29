@@ -9,9 +9,19 @@ import {
   LogOut,
 } from "lucide-react";
 
+import {
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+
 import "./Sidebar.css";
 
 function Sidebar() {
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+
   return (
     <aside className="dashboard-sidebar">
 
@@ -42,42 +52,105 @@ function Sidebar() {
           MENU
         </p>
 
-        <button className="nav-item active">
+
+        {/* Dashboard */}
+        <button
+          className={`nav-item ${
+            location.pathname === "/dashboard"
+              ? "active"
+              : ""
+          }`}
+          onClick={() => navigate("/dashboard")}
+        >
           <LayoutDashboard size={18} />
           <span>Dashboard</span>
         </button>
 
-        <button className="nav-item">
+
+        {/* Transactions */}
+        <button
+          className={`nav-item ${
+            location.pathname === "/transactions"
+              ? "active"
+              : ""
+          }`}
+          onClick={() => navigate("/transactions")}
+        >
           <Receipt size={18} />
           <span>Transactions</span>
         </button>
 
-        <button className="nav-item">
+
+        {/* Accounts */}
+        <button
+          className={`nav-item ${
+            location.pathname === "/accounts"
+              ? "active"
+              : ""
+          }`}
+          onClick={() => navigate("/accounts")}
+        >
           <CreditCard size={18} />
           <span>Accounts</span>
         </button>
 
-        <button className="nav-item">
+
+        {/* Budgets */}
+        <button
+          className={`nav-item ${
+            location.pathname === "/budgets"
+              ? "active"
+              : ""
+          }`}
+          onClick={() =>
+            navigate("/budgets")
+          }
+        >
           <BarChart3 size={18} />
           <span>Budgets</span>
         </button>
 
-        <button className="nav-item">
+
+        {/* Goals */}
+        <button
+          className={`nav-item ${
+            location.pathname === "/goals"
+              ? "active"
+              : ""
+          }`}
+          onClick={() =>
+            navigate("/goals")
+          }
+        >
           <Target size={18} />
           <span>Goals</span>
         </button>
 
-        <button className="nav-item">
+        {/* Reports */}
+        <button
+          className={`nav-item ${
+            location.pathname === "/reports"
+              ? "active"
+              : ""
+          }`}
+          onClick={() =>
+            navigate("/reports")
+          }
+        >
           <BarChart3 size={18} />
           <span>Reports</span>
         </button>
 
 
+        {/* Settings */}
         <p className="nav-title nav-title-settings">
           SETTINGS
         </p>
 
-        <button className="nav-item">
+
+        <button
+          className="nav-item"
+        >
           <Settings size={18} />
           <span>Settings</span>
         </button>
@@ -87,8 +160,13 @@ function Sidebar() {
 
       {/* Logout */}
       <button className="logout-button">
+
         <LogOut size={18} />
-        <span>Logout</span>
+
+        <span>
+          Logout
+        </span>
+
       </button>
 
     </aside>

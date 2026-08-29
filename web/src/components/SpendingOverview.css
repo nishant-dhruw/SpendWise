@@ -229,3 +229,98 @@
   }
 
 }
+
+/* ================================
+   SPENDING SUMMARY
+================================ */
+
+.spending-summary {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.summary-income {
+  color: #10b981;
+}
+
+.summary-expense {
+  color: #f59e0b;
+}
+
+.spending-summary strong {
+  font-weight: 700;
+}
+
+
+/* ================================
+   CHART EMPTY STATE
+================================ */
+
+.chart-area {
+  position: relative;
+}
+
+.chart-empty-state {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+}
+
+.chart-empty-state span {
+  padding: 10px 16px;
+
+  border-radius: 10px;
+
+  background: rgba(248, 250, 252, 0.9);
+
+  color: #94a3b8;
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+
+/* ================================
+   CHART DOTS
+================================ */
+
+.chart-svg circle {
+  transition:
+    r 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.chart-svg circle:hover {
+  r: 6;
+}
+
+
+/* ================================
+   CHART LINE
+================================ */
+
+.chart-svg polyline {
+  transition:
+    all 0.3s ease;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 900px) {
+
+  .spending-summary {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+}

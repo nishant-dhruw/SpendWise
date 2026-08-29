@@ -1,0 +1,757 @@
+/* =========================================================
+   REPORTS PAGE
+========================================================= */
+
+.reports-page {
+  min-height: 100vh;
+
+  display: flex;
+
+  background: #f7f9f9;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.reports-main {
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 28px 34px 40px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.reports-header {
+  margin-bottom: 24px;
+}
+
+
+.reports-header h1 {
+  margin: 0;
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+  color: #14213d;
+}
+
+
+.reports-header p {
+  margin: 6px 0 0;
+
+  font-size: 14px;
+
+  color: #718096;
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.reports-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 20px;
+
+  width: 100%;
+}
+
+
+/* =========================================================
+   SUMMARY CARD
+========================================================= */
+
+.report-summary-card {
+  min-height: 156px;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e9e8;
+
+  border-radius: 18px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.report-summary-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 25px rgba(
+      15,
+      23,
+      42,
+      0.06
+    );
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.report-summary-icon {
+  width: 42px;
+
+  height: 42px;
+
+  border-radius: 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+
+/* Income */
+
+.report-summary-icon.income {
+  background: #eaf7f2;
+
+  color: #169873;
+}
+
+
+/* Expense */
+
+.report-summary-icon.expense {
+  background: #fff0f0;
+
+  color: #e05252;
+}
+
+
+/* Savings */
+
+.report-summary-icon.savings {
+  background: #edf3ff;
+
+  color: #4f7fd6;
+}
+
+
+/* Transactions */
+
+.report-summary-icon.transactions {
+  background: #fff7e8;
+
+  color: #d99522;
+}
+
+
+/* =========================================================
+   CARD TEXT
+========================================================= */
+
+.report-summary-card span {
+  margin-top: 12px;
+
+  font-size: 13px;
+
+  color: #718096;
+}
+
+
+.report-summary-card strong {
+  margin-top: 6px;
+
+  font-size: 22px;
+
+  font-weight: 700;
+
+  color: #14213d;
+}
+
+
+.report-summary-card small {
+  margin-top: 8px;
+
+  font-size: 12px;
+
+  color: #8b9bb4;
+}
+
+
+/* =========================================================
+   POSITIVE / NEGATIVE VALUES
+========================================================= */
+
+.report-positive {
+  color: #169873 !important;
+}
+
+
+.report-negative {
+  color: #d94b4b !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1100px) {
+
+  .reports-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .reports-page {
+    flex-direction: column;
+  }
+
+
+  .reports-main {
+    padding: 22px 18px 32px;
+  }
+
+
+  .reports-summary {
+    grid-template-columns:
+      1fr;
+
+    gap: 16px;
+  }
+
+
+  .reports-header h1 {
+    font-size: 25px;
+  }
+
+}
+
+/* =========================================================
+   SPENDING BY CATEGORY
+========================================================= */
+
+.reports-category-section {
+  margin-top: 24px;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e9e8;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  box-sizing: border-box;
+}
+
+
+.reports-section-header {
+  margin-bottom: 22px;
+}
+
+
+.reports-section-header h2 {
+  margin: 0;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  color: #14213d;
+}
+
+
+.reports-section-header p {
+  margin: 6px 0 0;
+
+  font-size: 13px;
+
+  color: #718096;
+}
+
+
+/* =========================================================
+   CATEGORY LIST
+========================================================= */
+
+.category-report-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+
+.category-report-item {
+  padding-bottom: 4px;
+}
+
+
+.category-report-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 10px;
+}
+
+
+.category-report-name {
+  font-size: 15px;
+
+  font-weight: 600;
+
+  color: #334155;
+}
+
+
+.category-report-values {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+.category-report-values strong {
+  font-size: 15px;
+
+  color: #14213d;
+}
+
+
+.category-report-values span {
+  min-width: 42px;
+
+  font-size: 13px;
+
+  color: #718096;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   PROGRESS BAR
+========================================================= */
+
+.category-progress-track {
+  width: 100%;
+
+  height: 8px;
+
+  background: #edf1f0;
+
+  border-radius: 20px;
+
+  overflow: hidden;
+}
+
+
+.category-progress-fill {
+  height: 100%;
+
+  background: #169873;
+
+  border-radius: inherit;
+
+  transition:
+    width 0.4s ease;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.reports-empty-state {
+  min-height: 160px;
+
+  border: 1px dashed #cfe2dc;
+
+  border-radius: 14px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+}
+
+
+.reports-empty-state h3 {
+  margin: 0;
+
+  font-size: 17px;
+
+  color: #334155;
+}
+
+
+.reports-empty-state p {
+  margin: 8px 0 0;
+
+  font-size: 13px;
+
+  color: #718096;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .reports-category-section {
+    padding: 18px;
+  }
+
+
+  .category-report-top {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+
+  .category-report-values {
+    width: 100%;
+
+    justify-content: space-between;
+  }
+
+}
+
+/* =========================================
+   MONTHLY SPENDING TREND
+========================================= */
+
+.reports-trend-section {
+  margin-top: 22px;
+
+  padding: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e9e8;
+
+  border-radius: 18px;
+
+  box-sizing: border-box;
+}
+
+
+.monthly-report-list {
+  margin-top: 18px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+
+.monthly-report-item {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+
+.monthly-report-info {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+
+.monthly-report-month {
+  font-size: 14px;
+
+  font-weight: 600;
+
+  color: #334155;
+}
+
+
+.monthly-report-info strong {
+  font-size: 14px;
+
+  font-weight: 700;
+
+  color: #14213d;
+}
+
+
+.monthly-progress-track {
+  width: 100%;
+
+  height: 8px;
+
+  background: #e8eeee;
+
+  border-radius: 999px;
+
+  overflow: hidden;
+}
+
+
+.monthly-progress-fill {
+  height: 100%;
+
+  background: #209b7d;
+
+  border-radius: 999px;
+
+  transition:
+    width 0.4s ease;
+}
+
+
+.monthly-report-item:hover
+.monthly-progress-fill {
+  filter: brightness(0.95);
+}
+
+/* =========================================
+   YEARLY REPORTS
+========================================= */
+
+.reports-years-section {
+  margin-top: 20px;
+
+  padding: 22px;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e9e8;
+
+  border-radius: 18px;
+
+  box-sizing: border-box;
+}
+
+
+.year-report-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(250px, 1fr)
+    );
+
+  gap: 18px;
+}
+
+
+/* =========================================
+   YEAR CARD
+========================================= */
+
+.year-report-card {
+  width: 100%;
+
+  padding: 20px;
+
+  border: 1px solid #e3e9e8;
+
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+
+  font-family: inherit;
+}
+
+
+.year-report-card:hover {
+  transform:
+    translateY(-3px);
+
+  border-color:
+    #b8ddd4;
+
+  box-shadow:
+    0 12px 28px
+    rgba(
+      15,
+      23,
+      42,
+      0.08
+    );
+}
+
+
+.year-report-card-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+
+.year-report-icon {
+  width: 44px;
+
+  height: 44px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #eaf7f2;
+
+  color: #169873;
+}
+
+
+.year-report-arrow {
+  color: #94a3b8;
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+
+.year-report-card:hover
+.year-report-arrow {
+  transform:
+    translateX(4px);
+
+  color:
+    #169873;
+}
+
+
+.year-report-card h3 {
+  margin: 0 0 18px;
+
+  font-size: 24px;
+
+  font-weight: 700;
+
+  color: #24344d;
+}
+
+
+.year-report-info {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 16px;
+
+  padding-top: 16px;
+
+  border-top:
+    1px solid #edf1f0;
+}
+
+
+.year-report-info div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.year-report-info span {
+  font-size: 12px;
+
+  color: #718096;
+}
+
+
+.year-report-info strong {
+  font-size: 15px;
+
+  color: #24344d;
+}
+
+
+.year-report-view {
+  margin-top: 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #169873;
+}
