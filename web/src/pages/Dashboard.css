@@ -1,0 +1,121 @@
+/* =========================================================
+   SPENDWISE DASHBOARD
+========================================================= */
+
+.dashboard-page {
+  min-height: 100vh;
+
+  display: flex;
+
+  background: #f6faf8;
+
+  color: #172033;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.dashboard-main {
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 28px 32px 40px;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   SUMMARY GRID
+========================================================= */
+
+.summary-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 15px;
+
+  margin-bottom: 17px;
+}
+
+
+/* =========================================================
+   MIDDLE SECTION
+========================================================= */
+
+.dashboard-grid {
+  display: grid;
+
+  grid-template-columns: 1.55fr 1fr;
+
+  gap: 17px;
+
+  margin-bottom: 17px;
+}
+
+
+/* =========================================================
+   BOTTOM SECTION
+========================================================= */
+
+.bottom-grid {
+  display: grid;
+
+  grid-template-columns: 1.55fr 1fr;
+
+  gap: 17px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1150px) {
+
+  .dashboard-main {
+    padding: 25px 22px 35px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid,
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 750px) {
+
+  .dashboard-page {
+    display: block;
+  }
+
+  .dashboard-main {
+    padding: 20px 15px 30px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+@media (max-width: 480px) {
+
+  .summary-grid {
+    gap: 10px;
+  }
+
+  .dashboard-grid,
+  .bottom-grid {
+    gap: 12px;
+  }
+}
