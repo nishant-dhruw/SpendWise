@@ -2,12 +2,27 @@ import { Bell } from "lucide-react";
 import "./DashboardHeader.css";
 
 function DashboardHeader() {
+
+  // ================= CURRENT DATE =================
+
+  const today = new Date();
+
+  const formattedDate = today
+    .toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    })
+    .toUpperCase();
+
+
   return (
     <header className="dashboard-header">
 
       <div className="dashboard-header-left">
+
         <p className="dashboard-date">
-          FRIDAY, AUGUST 21
+          {formattedDate}
         </p>
 
         <h2>
@@ -17,7 +32,9 @@ function DashboardHeader() {
         <p className="dashboard-subtitle">
           Here's your financial overview.
         </p>
+
       </div>
+
 
       <div className="header-actions">
 
@@ -26,6 +43,7 @@ function DashboardHeader() {
 
           <span className="notification-dot"></span>
         </button>
+
 
         <div className="profile">
 

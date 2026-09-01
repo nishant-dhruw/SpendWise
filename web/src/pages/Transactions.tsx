@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
     Plus,
     Trash2,
@@ -10,1021 +11,1570 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import AddTransactionModal from "../components/AddTransactionModal";
-import EditTransactionModal from "../components/EditTransactionModal";
 
 import "./Transactions.css";
 
+
+// =========================================================
+// TRANSACTION INTERFACE
+// =========================================================
+
 interface Transaction {
+
     id: number;
-    type: "income" | "expense";
+
+    type:
+        | "income"
+        | "expense";
+
     category: string;
+
     description: string;
+
     amount: number;
+
     date: string;
+
     accountName: string;
+
 }
 
+
+// =========================================================
+// ACCOUNT INTERFACE
+// =========================================================
+
 interface Account {
+
     name: string;
+
     type: string;
+
     balance: number;
+
 }
+
+
+// =========================================================
+// COMPONENT
+// =========================================================
 
 function Transactions() {
 
-  // ================= TRANSACTIONS =================
 
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(() => {
+    const [transactions, setTransactions] =
+        useState<Transaction[]>(() => {
 
-      const savedTransactions =
-        localStorage.getItem(
-          "spendwise_transactions"
-        );
+            const savedTransactions =
+                localStorage.getItem(
+                    "spendwise_transactions"
+                );
 
-      return savedTransactions
-        ? JSON.parse(savedTransactions)
-        : [];
-    });
+            return savedTransactions
+                ? JSON.parse(savedTransactions)
+                : [];
 
+        });
 
-  // ================= ACCOUNTS =================
 
     const [accounts, setAccounts] =
         useState<Account[]>(() => {
 
-        const savedAccounts =
-            localStorage.getItem(
-            "spendwise_accounts"
-            );
+            const savedAccounts =
+                localStorage.getItem(
+                    "spendwise_accounts"
+                );
 
-        return savedAccounts
-            ? JSON.parse(savedAccounts)
-            : [];
+            return savedAccounts
+                ? JSON.parse(savedAccounts)
+                : [];
+
         });
 
 
-    // ================= UI =================
-
-    const [showAddTransaction, setShowAddTransaction] =
+    const [
+        showAddTransaction,
+        setShowAddTransaction,
+    ] =
         useState(false);
+
 
     const [search, setSearch] =
         useState("");
 
+
     const [typeFilter, setTypeFilter] =
         useState("all");
+
 
     const [categoryFilter, setCategoryFilter] =
         useState("all");
 
+
     const [dateFilter, setDateFilter] =
         useState("all");
 
+
     const [sortOrder, setSortOrder] =
-        useState<"newest" | "oldest">("newest");
+        useState<
+            "newest"
+            | "oldest"
+        >(
+            "newest"
+        );
 
-    const [transactionToDelete, setTransactionToDelete] =
-        useState<Transaction | null>(null);
 
-    const [transactionToEdit, setTransactionToEdit] =
-        useState<Transaction | null>(null);
+    const [
+        transactionToDelete,
+        setTransactionToDelete,
+    ] =
+        useState<Transaction | null>(
+            null
+        );
 
 
-    // ================= SAVE =================
+    const [
+        transactionToEdit,
+        setTransactionToEdit,
+    ] =
+        useState<Transaction | null>(
+            null
+        );
+
+
+    // =====================================================
+    // SAVE TRANSACTIONS
+    // =====================================================
 
     useEffect(() => {
 
         localStorage.setItem(
-        "spendwise_transactions",
-        JSON.stringify(transactions)
+
+            "spendwise_transactions",
+
+            JSON.stringify(
+                transactions
+            )
+
+        );
+
+
+        window.dispatchEvent(
+
+            new Event(
+                "spendwise_transactions_updated"
+            )
+
         );
 
     }, [transactions]);
 
 
+    // =====================================================
+    // SAVE ACCOUNTS
+    // =====================================================
+
     useEffect(() => {
 
         localStorage.setItem(
-        "spendwise_accounts",
-        JSON.stringify(accounts)
+
+            "spendwise_accounts",
+
+            JSON.stringify(
+                accounts
+            )
+
+        );
+
+
+        window.dispatchEvent(
+
+            new Event(
+                "spendwise_accounts_updated"
+            )
+
         );
 
     }, [accounts]);
 
 
-  // ================= ADD =================
+    // =====================================================
+    // UPDATE ACCOUNT BALANCE
+    // =====================================================
+
+    const updateAccountBalance = (
+
+        currentAccounts: Account[],
+
+        transaction: Transaction,
+
+        action:
+            | "add"
+            | "remove"
+
+    ) => {
+
+        return currentAccounts.map(
+            (account) => {
+
+
+                if (
+                    account.name !==
+                    transaction.accountName
+                ) {
+
+                    return account;
+
+                }
+
+
+                let balanceChange =
+                    transaction.amount;
+
+
+                if (
+                    transaction.type ===
+                    "expense"
+                ) {
+
+                    balanceChange =
+                        -balanceChange;
+
+                }
+
+
+                if (
+                    action ===
+                    "remove"
+                ) {
+
+                    balanceChange =
+                        -balanceChange;
+
+                }
+
+
+                return {
+
+                    ...account,
+
+                    balance:
+
+                        account.balance +
+
+                        balanceChange,
+
+                };
+
+            }
+        );
+
+    };
+
+
+    // =====================================================
+    // ADD TRANSACTION
+    // =====================================================
 
     const handleAddTransaction = (
         newTransaction: Transaction
     ) => {
 
-        setTransactions((currentTransactions) => [
-        newTransaction,
-        ...currentTransactions,
-        ]);
 
+        setTransactions(
+            (currentTransactions) => [
 
-        setAccounts((currentAccounts) =>
-        currentAccounts.map((account) => {
+                newTransaction,
 
-            if (
-            account.name !==
-            newTransaction.accountName
-            ) {
-            return account;
-            }
+                ...currentTransactions,
 
-
-            const newBalance =
-            newTransaction.type === "income"
-                ? account.balance +
-                newTransaction.amount
-                : account.balance -
-                newTransaction.amount;
-
-
-            return {
-            ...account,
-            balance: newBalance,
-            };
-
-        })
+            ]
         );
 
 
-        setShowAddTransaction(false);
+        setAccounts(
+            (currentAccounts) =>
+
+                updateAccountBalance(
+
+                    currentAccounts,
+
+                    newTransaction,
+
+                    "add"
+
+                )
+        );
+
+
+        setShowAddTransaction(
+            false
+        );
+
     };
 
-    // ================= EDIT =================
 
-const handleEditTransaction = (
-    updatedTransaction: Transaction
-) => {
+    // =====================================================
+    // EDIT TRANSACTION
+    // =====================================================
 
-    setTransactions((currentTransactions) =>
-        currentTransactions.map((transaction) =>
-            transaction.id === updatedTransaction.id
-                ? updatedTransaction
-                : transaction
-        )
-    );
+    const handleEditTransaction = (
 
+        oldTransaction: Transaction,
 
-    setAccounts((currentAccounts) =>
-        currentAccounts.map((account) => {
+        updatedTransaction: Transaction
 
-            let balance = account.balance;
+    ) => {
 
 
-            // Remove old transaction effect
+        setTransactions(
+            (currentTransactions) =>
 
-            if (
-                account.name ===
-                transactionToEdit?.accountName
-            ) {
+                currentTransactions.map(
+                    (transaction) =>
 
-                if (
-                    transactionToEdit.type === "income"
-                ) {
+                        transaction.id ===
+                        updatedTransaction.id
 
-                    balance -=
-                        transactionToEdit.amount;
+                            ? updatedTransaction
 
-                } else {
-
-                    balance +=
-                        transactionToEdit.amount;
-
-                }
-
-            }
+                            : transaction
+                )
+        );
 
 
-            // Apply new transaction effect
+        setAccounts(
+            (currentAccounts) => {
 
-            if (
-                account.name ===
-                updatedTransaction.accountName
-            ) {
 
-                if (
-                    updatedTransaction.type === "income"
-                ) {
+                const accountsWithoutOldEffect =
 
-                    balance +=
-                        updatedTransaction.amount;
+                    updateAccountBalance(
 
-                } else {
+                        currentAccounts,
 
-                    balance -=
-                        updatedTransaction.amount;
+                        oldTransaction,
 
-                }
+                        "remove"
+
+                    );
+
+
+                return updateAccountBalance(
+
+                    accountsWithoutOldEffect,
+
+                    updatedTransaction,
+
+                    "add"
+
+                );
 
             }
+        );
 
 
-            return {
-                ...account,
-                balance,
-            };
+        setTransactionToEdit(
+            null
+        );
 
-        })
-    );
+    };
 
 
-    setTransactionToEdit(null);
-};
-
-
-  // ================= DELETE =================
+    // =====================================================
+    // DELETE TRANSACTION
+    // =====================================================
 
     const handleDeleteTransaction = (
         transaction: Transaction
     ) => {
 
-        setTransactions((currentTransactions) =>
-        currentTransactions.filter(
-            (currentTransaction) =>
-            currentTransaction.id !==
-            transaction.id
-        )
+
+        setTransactions(
+            (currentTransactions) =>
+
+                currentTransactions.filter(
+                    (currentTransaction) =>
+
+                        currentTransaction.id !==
+                        transaction.id
+                )
         );
 
 
-        setAccounts((currentAccounts) =>
-        currentAccounts.map((account) => {
+        setAccounts(
+            (currentAccounts) =>
 
-            if (
-            account.name !==
-            transaction.accountName
-            ) {
-            return account;
-            }
+                updateAccountBalance(
 
+                    currentAccounts,
 
-            const restoredBalance =
-            transaction.type === "expense"
-                ? account.balance +
-                transaction.amount
-                : account.balance -
-                transaction.amount;
+                    transaction,
 
+                    "remove"
 
-            return {
-            ...account,
-            balance: restoredBalance,
-            };
-
-        })
+                )
         );
 
 
-        setTransactionToDelete(null);
+        setTransactionToDelete(
+            null
+        );
+
     };
 
 
-  // ================= FILTER =================
+    // =====================================================
+    // FILTER TRANSACTIONS
+    // =====================================================
 
     const filteredTransactions =
-        transactions.filter((transaction) => {
 
-            // ================= SEARCH =================
-
-            const matchesSearch =
-            transaction.description
-                .toLowerCase()
-                .includes(search.toLowerCase()) ||
-            transaction.accountName
-                .toLowerCase()
-                .includes(search.toLowerCase());
+        transactions.filter(
+            (transaction) => {
 
 
-            // ================= TYPE =================
-
-            const matchesType =
-            typeFilter === "all" ||
-            transaction.type === typeFilter;
+                const searchText =
+                    search.toLowerCase();
 
 
-            // ================= CATEGORY =================
+                const matchesSearch =
 
-            const matchesCategory =
-            categoryFilter === "all" ||
-            transaction.category === categoryFilter;
+                    transaction.description
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        )
 
+                    ||
 
-            // ================= DATE =================
-
-            const transactionDate =
-            new Date(transaction.date);
-
-            const today = new Date();
-
-            const todayDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate()
-            );
+                    transaction.accountName
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        );
 
 
-            const matchesDate = (() => {
+                const matchesType =
 
-            if (dateFilter === "all") {
-                return true;
-            }
+                    typeFilter ===
+                    "all"
+
+                    ||
+
+                    transaction.type ===
+                    typeFilter;
 
 
-            if (dateFilter === "today") {
+                const matchesCategory =
+
+                    categoryFilter ===
+                    "all"
+
+                    ||
+
+                    transaction.category ===
+                    categoryFilter;
+
+
+                const transactionDate =
+                    new Date(
+                        transaction.date
+                    );
+
+
+                const today =
+                    new Date();
+
+
+                const todayDate =
+                    new Date(
+
+                        today.getFullYear(),
+
+                        today.getMonth(),
+
+                        today.getDate()
+
+                    );
+
+
+                const matchesDate =
+                    (() => {
+
+
+                        if (
+                            dateFilter ===
+                            "all"
+                        ) {
+
+                            return true;
+
+                        }
+
+
+                        if (
+                            dateFilter ===
+                            "today"
+                        ) {
+
+                            return (
+
+                                transactionDate
+                                    .getFullYear() ===
+
+                                todayDate
+                                    .getFullYear()
+
+                                &&
+
+                                transactionDate
+                                    .getMonth() ===
+
+                                todayDate
+                                    .getMonth()
+
+                                &&
+
+                                transactionDate
+                                    .getDate() ===
+
+                                todayDate
+                                    .getDate()
+
+                            );
+
+                        }
+
+
+                        if (
+                            dateFilter ===
+                            "week"
+                        ) {
+
+                            const startOfWeek =
+                                new Date(
+                                    todayDate
+                                );
+
+
+                            const day =
+                                startOfWeek.getDay();
+
+
+                            startOfWeek.setDate(
+
+                                startOfWeek.getDate()
+
+                                - day
+
+                            );
+
+
+                            const endOfWeek =
+                                new Date(
+                                    startOfWeek
+                                );
+
+
+                            endOfWeek.setDate(
+
+                                endOfWeek.getDate()
+
+                                + 6
+
+                            );
+
+
+                            endOfWeek.setHours(
+
+                                23,
+
+                                59,
+
+                                59,
+
+                                999
+
+                            );
+
+
+                            return (
+
+                                transactionDate >=
+                                startOfWeek
+
+                                &&
+
+                                transactionDate <=
+                                endOfWeek
+
+                            );
+
+                        }
+
+
+                        if (
+                            dateFilter ===
+                            "month"
+                        ) {
+
+                            return (
+
+                                transactionDate
+                                    .getFullYear() ===
+
+                                todayDate
+                                    .getFullYear()
+
+                                &&
+
+                                transactionDate
+                                    .getMonth() ===
+
+                                todayDate
+                                    .getMonth()
+
+                            );
+
+                        }
+
+
+                        if (
+                            dateFilter ===
+                            "lastMonth"
+                        ) {
+
+                            const lastMonth =
+                                new Date(
+
+                                    todayDate
+                                        .getFullYear(),
+
+                                    todayDate
+                                        .getMonth()
+                                        - 1,
+
+                                    1
+
+                                );
+
+
+                            return (
+
+                                transactionDate
+                                    .getFullYear() ===
+
+                                lastMonth
+                                    .getFullYear()
+
+                                &&
+
+                                transactionDate
+                                    .getMonth() ===
+
+                                lastMonth
+                                    .getMonth()
+
+                            );
+
+                        }
+
+
+                        return true;
+
+                    })();
+
 
                 return (
-                transactionDate.getFullYear() ===
-                    todayDate.getFullYear() &&
-                transactionDate.getMonth() ===
-                    todayDate.getMonth() &&
-                transactionDate.getDate() ===
-                    todayDate.getDate()
+
+                    matchesSearch
+
+                    &&
+
+                    matchesType
+
+                    &&
+
+                    matchesCategory
+
+                    &&
+
+                    matchesDate
+
                 );
 
             }
-
-
-            if (dateFilter === "week") {
-
-                const startOfWeek = new Date(
-                todayDate
-                );
-
-                const day =
-                startOfWeek.getDay();
-
-                startOfWeek.setDate(
-                startOfWeek.getDate() - day
-                );
-
-
-                const endOfWeek = new Date(
-                startOfWeek
-                );
-
-                endOfWeek.setDate(
-                endOfWeek.getDate() + 6
-                );
-
-
-                return (
-                transactionDate >= startOfWeek &&
-                transactionDate <= endOfWeek
-                );
-
-            }
-
-
-            if (dateFilter === "month") {
-
-                return (
-                transactionDate.getFullYear() ===
-                    todayDate.getFullYear() &&
-                transactionDate.getMonth() ===
-                    todayDate.getMonth()
-                );
-
-            }
-
-
-            if (dateFilter === "lastMonth") {
-
-                const lastMonth =
-                new Date(
-                    todayDate.getFullYear(),
-                    todayDate.getMonth() - 1,
-                    1
-                );
-
-
-                return (
-                transactionDate.getFullYear() ===
-                    lastMonth.getFullYear() &&
-                transactionDate.getMonth() ===
-                    lastMonth.getMonth()
-                );
-
-            }
-
-
-            return true;
-
-            })();
-
-
-    return (
-        matchesSearch &&
-        matchesType &&
-        matchesCategory &&
-        matchesDate
         );
 
-    });
 
-        // ================= SORT =================
+    // =====================================================
+    // SORT TRANSACTIONS
+    // =====================================================
 
-        const sortedTransactions =
-            [...filteredTransactions].sort(
-                (a, b) => {
+    const sortedTransactions =
 
-                    const dateA =
-                        new Date(a.date).getTime();
+        [...filteredTransactions].sort(
+            (a, b) => {
 
-                    const dateB =
-                        new Date(b.date).getTime();
 
-                    return sortOrder === "newest"
-                        ? dateB - dateA
-                        : dateA - dateB;
-                }
+                const dateA =
+                    new Date(
+                        a.date
+                    ).getTime();
+
+
+                const dateB =
+                    new Date(
+                        b.date
+                    ).getTime();
+
+
+                return sortOrder ===
+                    "newest"
+
+                    ? dateB - dateA
+
+                    : dateA - dateB;
+
+            }
+        );
+
+
+    // =====================================================
+    // SUMMARY
+    // =====================================================
+
+    const totalIncome =
+
+        transactions
+
+            .filter(
+                (transaction) =>
+
+                    transaction.type ===
+                    "income"
+            )
+
+            .reduce(
+
+                (
+                    total,
+                    transaction
+                ) =>
+
+                    total +
+                    transaction.amount,
+
+                0
+
             );
 
 
-  // ================= SUMMARY =================
+    const totalExpenses =
 
-  const totalIncome =
-    transactions
-      .filter(
-        (transaction) =>
-          transaction.type === "income"
-      )
-      .reduce(
-        (total, transaction) =>
-          total + transaction.amount,
-        0
-      );
+        transactions
 
+            .filter(
+                (transaction) =>
 
-  const totalExpenses =
-    transactions
-      .filter(
-        (transaction) =>
-          transaction.type === "expense"
-      )
-      .reduce(
-        (total, transaction) =>
-          total + transaction.amount,
-        0
-      );
+                    transaction.type ===
+                    "expense"
+            )
 
+            .reduce(
 
-  const netAmount =
-    totalIncome - totalExpenses;
+                (
+                    total,
+                    transaction
+                ) =>
 
+                    total +
+                    transaction.amount,
 
-  // ================= ICON =================
+                0
 
-  const getCategoryIcon = (
-    category: string
-  ) => {
+            );
 
-    if (category === "food") return "🍔";
-    if (category === "transport") return "🚕";
-    if (category === "shopping") return "🛍️";
-    if (category === "salary") return "💼";
-    if (category === "bills") return "💡";
-    if (category === "entertainment") return "🎮";
-    if (category === "health") return "🏥";
-    if (category === "freelance") return "💻";
 
-    return "💰";
-  };
+    const netAmount =
+        totalIncome -
+        totalExpenses;
 
 
-  return (
+    // =====================================================
+    // CATEGORY ICON
+    // =====================================================
 
-    <main className="transactions-page">
+    const getCategoryIcon = (
+        category: string
+    ) => {
 
-      <Sidebar />
 
-      <section className="transactions-main">
+        if (category === "food") {
+            return "🍔";
+        }
 
-        {/* ================= HEADER ================= */}
+        if (category === "transport") {
+            return "🚕";
+        }
 
-        <div className="transactions-page-header">
+        if (category === "shopping") {
+            return "🛍️";
+        }
 
-          <div>
+        if (category === "salary") {
+            return "💼";
+        }
 
-            <h1>
-              Transactions
-            </h1>
+        if (category === "bills") {
+            return "💡";
+        }
 
-            <p>
-              Manage your income and expenses
-            </p>
+        if (category === "entertainment") {
+            return "🎮";
+        }
 
-          </div>
+        if (category === "health") {
+            return "🏥";
+        }
 
+        if (category === "freelance") {
+            return "💻";
+        }
 
-          <button
-            className="transactions-page-add"
-            onClick={() =>
-              setShowAddTransaction(true)
-            }
-          >
+        return "💰";
 
-            <Plus size={18} />
+    };
 
-            Add Transaction
 
-          </button>
+    // =====================================================
+    // PAGE
+    // =====================================================
 
-        </div>
+    return (
 
+        <main className="transactions-page">
 
-        {/* ================= SUMMARY ================= */}
+            <Sidebar />
 
-        <section className="transactions-summary">
 
-          <div className="transaction-summary-card">
+            <section className="transactions-main">
 
-            <span>
-              Total Income
-            </span>
 
-            <strong className="summary-income">
+                {/* HEADER */}
 
-              <ArrowUpRight size={18} />
-
-              ₹
-              {totalIncome.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-          </div>
-
-
-          <div className="transaction-summary-card">
-
-            <span>
-              Total Expenses
-            </span>
-
-            <strong className="summary-expense">
-
-              <ArrowDownRight size={18} />
-
-              ₹
-              {totalExpenses.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-          </div>
-
-
-          <div className="transaction-summary-card">
-
-            <span>
-              Net Amount
-            </span>
-
-            <strong
-              className={
-                netAmount >= 0
-                  ? "summary-income"
-                  : "summary-expense"
-              }
-            >
-
-              ₹
-              {netAmount.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= TRANSACTIONS CARD ================= */}
-
-        <section className="transactions-page-card">
-
-          {/* Filters */}
-
-          <div className="transactions-filters">
-
-            <div className="transaction-search">
-
-              <Search size={17} />
-
-              <input
-                type="text"
-                placeholder="Search transactions..."
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-              />
-
-            </div>
-
-
-            <select
-              value={typeFilter}
-              onChange={(e) =>
-                setTypeFilter(e.target.value)
-              }
-            >
-
-              <option value="all">
-                All Types
-              </option>
-
-              <option value="income">
-                Income
-              </option>
-
-              <option value="expense">
-                Expense
-              </option>
-
-            </select>
-
-
-            <select
-                value={categoryFilter}
-                onChange={(e) =>
-                    setCategoryFilter(e.target.value)
-                }
-                >
-
-                <option value="all">
-                    All Categories
-                </option>
-
-                <option value="food">
-                    Food & Dining
-                </option>
-
-                <option value="transport">
-                    Transport
-                </option>
-
-                <option value="shopping">
-                    Shopping
-                </option>
-
-                <option value="bills">
-                    Bills & Utilities
-                </option>
-
-                <option value="entertainment">
-                    Entertainment
-                </option>
-
-                <option value="health">
-                    Health
-                </option>
-
-                <option value="salary">
-                    Salary
-                </option>
-
-                <option value="freelance">
-                    Freelance
-                </option>
-
-                <option value="other">
-                    Other
-                </option>
-
-                </select>
-
-            <select
-                value={dateFilter}
-                onChange={(e) =>
-                    setDateFilter(e.target.value)
-                }
-                >
-
-                <option value="all">
-                    All Dates
-                </option>
-
-                <option value="today">
-                    Today
-                </option>
-
-                <option value="week">
-                    This Week
-                </option>
-
-                <option value="month">
-                    This Month
-                </option>
-
-                <option value="lastMonth">
-                    Last Month
-                </option>
-
-                </select>
-
-                <select
-                    value={sortOrder}
-                    onChange={(e) =>
-                        setSortOrder(
-                            e.target.value as "newest" | "oldest"
-                        )
-                    }
-                >
-                    <option value="newest">
-                        Newest First
-                    </option>
-
-                    <option value="oldest">
-                        Oldest First
-                    </option>
-                </select>
-
-        </div>
-
-
-          {/* List */}
-
-        <div className="transactions-page-list">
-
-            {filteredTransactions.length === 0 ? (
-
-            <div className="transactions-empty">
-
-                <div>
-                    💸
-                </div>
-
-                <h3>
-                    No transactions found
-                </h3>
-
-                <p>
-                    Try changing your filters
-                    or add a new transaction.
-                </p>
-
-            </div>
-
-            ) : (
-
-            sortedTransactions.map(
-                (transaction) => (
-
-                <div
-                    className="transactions-page-row"
-                    key={transaction.id}
-                >
-
-                    <div className="transactions-page-left">
-
-                    <div
-                        className={`transactions-page-icon ${transaction.category}`}
-                    >
-                        {getCategoryIcon(
-                            transaction.category
-                        )}
-                    </div>
-
+                <div className="transactions-page-header">
 
                     <div>
 
-                        <strong>
-                            {transaction.description}
-                        </strong>
+                        <h1>
+                            Transactions
+                        </h1>
+
+                        <p>
+                            Manage your income
+                            and expenses
+                        </p>
+
+                    </div>
+
+
+                    <button
+
+                        className="transactions-page-add"
+
+                        onClick={() =>
+                            setShowAddTransaction(
+                                true
+                            )
+                        }
+
+                    >
+
+                        <Plus size={18} />
+
+                        Add Transaction
+
+                    </button>
+
+                </div>
+
+
+                {/* SUMMARY */}
+
+                <section className="transactions-summary">
+
+
+                    <div className="transaction-summary-card">
 
                         <span>
-                            {transaction.category}
-                            {" · "}
-                            {transaction.accountName}
+                            Total Income
                         </span>
 
-                        <small>
-                            {transaction.date}
-                        </small>
+
+                        <strong className="summary-income">
+
+                            <ArrowUpRight
+                                size={18}
+                            />
+
+                            ₹
+
+                            {totalIncome.toLocaleString(
+                                "en-IN"
+                            )}
+
+                        </strong>
 
                     </div>
 
+
+                    <div className="transaction-summary-card">
+
+                        <span>
+                            Total Expenses
+                        </span>
+
+
+                        <strong className="summary-expense">
+
+                            <ArrowDownRight
+                                size={18}
+                            />
+
+                            ₹
+
+                            {totalExpenses.toLocaleString(
+                                "en-IN"
+                            )}
+
+                        </strong>
+
                     </div>
 
 
-                    <div className="transactions-page-right">
+                    <div className="transaction-summary-card">
 
-                      <strong
-                        className={
-                          transaction.type ===
-                          "income"
-                            ? "transaction-income"
-                            : "transaction-expense"
-                        }
-                      >
+                        <span>
+                            Net Amount
+                        </span>
 
-                        {transaction.type ===
-                        "income"
-                          ? "+"
-                          : "-"}
 
-                        ₹
-                        {transaction.amount.toLocaleString(
-                          "en-IN"
+                        <strong
+
+                            className={
+                                netAmount >= 0
+
+                                    ? "summary-income"
+
+                                    : "summary-expense"
+                            }
+
+                        >
+
+                            ₹
+
+                            {netAmount.toLocaleString(
+                                "en-IN"
+                            )}
+
+                        </strong>
+
+                    </div>
+
+
+                </section>
+
+
+                {/* TRANSACTIONS */}
+
+                <section className="transactions-page-card">
+
+
+                    {/* FILTERS */}
+
+                    <div className="transactions-filters">
+
+
+                        <div className="transaction-search">
+
+                            <Search size={17} />
+
+                            <input
+
+                                type="text"
+
+                                placeholder="Search transactions..."
+
+                                value={search}
+
+                                onChange={(event) =>
+                                    setSearch(
+                                        event.target.value
+                                    )
+                                }
+
+                            />
+
+                        </div>
+
+
+                        {/* TYPE FILTER */}
+
+                        <select
+
+                            value={typeFilter}
+
+                            onChange={(event) =>
+                                setTypeFilter(
+                                    event.target.value
+                                )
+                            }
+
+                        >
+
+                            <option value="all">
+                                All Types
+                            </option>
+
+                            <option value="income">
+                                Income
+                            </option>
+
+                            <option value="expense">
+                                Expense
+                            </option>
+
+                        </select>
+
+
+                        {/* CATEGORY FILTER */}
+
+                        <select
+
+                            value={categoryFilter}
+
+                            onChange={(event) =>
+                                setCategoryFilter(
+                                    event.target.value
+                                )
+                            }
+
+                        >
+
+                            <option value="all">
+                                All Categories
+                            </option>
+
+                            <option value="food">
+                                Food & Dining
+                            </option>
+
+                            <option value="transport">
+                                Transport
+                            </option>
+
+                            <option value="shopping">
+                                Shopping
+                            </option>
+
+                            <option value="bills">
+                                Bills & Utilities
+                            </option>
+
+                            <option value="entertainment">
+                                Entertainment
+                            </option>
+
+                            <option value="health">
+                                Health
+                            </option>
+
+                            <option value="salary">
+                                Salary
+                            </option>
+
+                            <option value="freelance">
+                                Freelance
+                            </option>
+
+                            <option value="other">
+                                Other
+                            </option>
+
+                        </select>
+
+
+                        {/* DATE FILTER */}
+
+                        <select
+
+                            value={dateFilter}
+
+                            onChange={(event) =>
+                                setDateFilter(
+                                    event.target.value
+                                )
+                            }
+
+                        >
+
+                            <option value="all">
+                                All Dates
+                            </option>
+
+                            <option value="today">
+                                Today
+                            </option>
+
+                            <option value="week">
+                                This Week
+                            </option>
+
+                            <option value="month">
+                                This Month
+                            </option>
+
+                            <option value="lastMonth">
+                                Last Month
+                            </option>
+
+                        </select>
+
+
+                        {/* SORT */}
+
+                        <select
+
+                            value={sortOrder}
+
+                            onChange={(event) =>
+                                setSortOrder(
+
+                                    event.target.value as
+
+                                        | "newest"
+                                        | "oldest"
+
+                                )
+                            }
+
+                        >
+
+                            <option value="newest">
+                                Newest First
+                            </option>
+
+                            <option value="oldest">
+                                Oldest First
+                            </option>
+
+                        </select>
+
+
+                    </div>
+
+
+                    {/* TRANSACTION LIST */}
+
+                    <div className="transactions-page-list">
+
+
+                        {filteredTransactions.length === 0 ? (
+
+                            <div className="transactions-empty">
+
+                                <div>
+                                    💸
+                                </div>
+
+
+                                <h3>
+                                    No transactions found
+                                </h3>
+
+
+                                <p>
+                                    Try changing your filters
+                                    or add a new transaction.
+                                </p>
+
+                            </div>
+
+                        ) : (
+
+                            sortedTransactions.map(
+                                (transaction) => (
+
+                                    <div
+
+                                        className="transactions-page-row"
+
+                                        key={transaction.id}
+
+                                    >
+
+
+                                        {/* LEFT SIDE */}
+
+                                        <div className="transactions-page-left">
+
+
+                                            <div
+
+                                                className={
+                                                    `transactions-page-icon ${transaction.category}`
+                                                }
+
+                                            >
+
+                                                {getCategoryIcon(
+                                                    transaction.category
+                                                )}
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <strong>
+
+                                                    {
+                                                        transaction.description
+                                                    }
+
+                                                </strong>
+
+
+                                                <span>
+
+                                                    {
+                                                        `${transaction.category} · ${transaction.accountName}`
+                                                    }
+
+                                                </span>
+
+
+                                                <small>
+
+                                                    {
+                                                        transaction.date
+                                                    }
+
+                                                </small>
+
+                                            </div>
+
+
+                                        </div>
+
+
+                                        {/* RIGHT SIDE */}
+
+                                        <div className="transactions-page-right">
+
+
+                                            <strong
+
+                                                className={
+
+                                                    transaction.type ===
+                                                    "income"
+
+                                                        ? "transaction-income"
+
+                                                        : "transaction-expense"
+
+                                                }
+
+                                            >
+
+                                                {
+
+                                                    transaction.type ===
+                                                    "income"
+
+                                                        ? "+"
+
+                                                        : "-"
+
+                                                }
+
+                                                {" "}
+
+                                                ₹
+
+                                                {transaction.amount.toLocaleString(
+                                                    "en-IN"
+                                                )}
+
+                                            </strong>
+
+
+                                            {/* EDIT */}
+
+                                            <button
+
+                                                className="transaction-page-edit"
+
+                                                onClick={() =>
+                                                    setTransactionToEdit(
+                                                        {
+                                                            ...transaction,
+                                                        }
+                                                    )
+                                                }
+
+                                            >
+
+                                                <Pencil size={15} />
+
+                                            </button>
+
+
+                                            {/* DELETE */}
+
+                                            <button
+
+                                                className="transaction-page-delete"
+
+                                                onClick={() =>
+                                                    setTransactionToDelete(
+                                                        transaction
+                                                    )
+                                                }
+
+                                            >
+
+                                                <Trash2 size={15} />
+
+                                            </button>
+
+
+                                        </div>
+
+
+                                    </div>
+
+                                )
+                            )
+
                         )}
 
-                      </strong>
-
-
-                      <button
-                        className="transaction-page-delete"
-                        onClick={() =>
-                          setTransactionToDelete(
-                            transaction
-                          )
-                        }
-                      >
-
-                        <Trash2 size={15} />
-
-                      </button>
-
-                      <button
-                          className="transaction-page-edit"
-                          onClick={() =>
-                              setTransactionToEdit({
-                                  ...transaction,
-                              })
-                          }
-                      >
-                          <Pencil size={15} />
-                      </button>
 
                     </div>
 
-                  </div>
 
-                )
-              )
+                </section>
+
+
+            </section>
+
+
+            {/* =================================================
+                ADD MODAL
+            ================================================= */}
+
+            {showAddTransaction && (
+
+                <AddTransactionModal
+
+                    onClose={() =>
+                        setShowAddTransaction(
+                            false
+                        )
+                    }
+
+                    onAddTransaction={
+                        handleAddTransaction
+                    }
+
+                    accounts={
+                        accounts
+                    }
+
+                />
 
             )}
 
-          </div>
 
-        </section>
+            {/* =================================================
+                EDIT MODAL
+            ================================================= */}
 
-      </section>
+            {transactionToEdit && (
 
+                <AddTransactionModal
 
-      {/* ================= ADD MODAL ================= */}
+                    transactionToEdit={
+                        transactionToEdit
+                    }
 
-      {showAddTransaction && (
+                    onClose={() =>
+                        setTransactionToEdit(
+                            null
+                        )
+                    }
 
-        <AddTransactionModal
-          onClose={() =>
-            setShowAddTransaction(false)
-          }
-          onAddTransaction={
-            handleAddTransaction
-          }
-          accounts={accounts}
-        />
+                    onAddTransaction={
+                        handleAddTransaction
+                    }
 
-      )}
+                    onEditTransaction={
+                        handleEditTransaction
+                    }
 
-      {/* ================= EDIT MODAL ================= */}
+                    accounts={
+                        accounts
+                    }
 
-      {transactionToEdit && (
+                />
 
-          <EditTransactionModal
-              transaction={transactionToEdit}
-              accounts={accounts}
-              onClose={() =>
-                  setTransactionToEdit(null)
-              }
-              onSaveTransaction={
-                  handleEditTransaction
-              }
-          />
-
-      )}
+            )}
 
 
-      {/* ================= DELETE MODAL ================= */}
+            {/* =================================================
+                DELETE MODAL
+            ================================================= */}
 
-      {transactionToDelete && (
+            {transactionToDelete && (
 
-        <div
-          className="delete-confirm-overlay"
-          onClick={() =>
-            setTransactionToDelete(null)
-          }
-        >
+                <div
 
-          <div
-            className="delete-confirm-modal"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
-          >
+                    className="delete-confirm-overlay"
 
-            <div className="delete-confirm-icon">
+                    onClick={() =>
+                        setTransactionToDelete(
+                            null
+                        )
+                    }
 
-              <Trash2 size={22} />
-
-            </div>
+                >
 
 
-            <h3>
-              Delete Transaction?
-            </h3>
+                    <div
+
+                        className="delete-confirm-modal"
+
+                        onClick={(event) =>
+                            event.stopPropagation()
+                        }
+
+                    >
 
 
-            <p>
-              Are you sure you want to
-              delete this transaction?
-            </p>
+                        <div className="delete-confirm-icon">
+
+                            <Trash2 size={22} />
+
+                        </div>
 
 
-            <div className="delete-confirm-details">
-
-              <strong>
-                {transactionToDelete.description}
-              </strong>
-
-              <span
-                className={
-                  transactionToDelete.type ===
-                  "income"
-                    ? "transaction-income"
-                    : "transaction-expense"
-                }
-              >
-
-                {transactionToDelete.type ===
-                "income"
-                  ? "+"
-                  : "-"}
-
-                ₹
-                {transactionToDelete.amount.toLocaleString(
-                  "en-IN"
-                )}
-
-              </span>
-
-            </div>
+                        <h3>
+                            Delete Transaction?
+                        </h3>
 
 
-            <p className="delete-confirm-note">
-
-              This will update the balance of{" "}
-
-              <strong>
-                {transactionToDelete.accountName}
-              </strong>.
-
-            </p>
+                        <p>
+                            Are you sure you want to
+                            delete this transaction?
+                        </p>
 
 
-            <div className="delete-confirm-actions">
+                        <div className="delete-confirm-details">
 
-              <button
-                className="delete-cancel-button"
-                onClick={() =>
-                  setTransactionToDelete(null)
-                }
-              >
-                Cancel
-              </button>
+                            <strong>
+
+                                {
+                                    transactionToDelete.description
+                                }
+
+                            </strong>
 
 
-              <button
-                className="delete-confirm-button"
-                onClick={() =>
-                  handleDeleteTransaction(
-                    transactionToDelete
-                  )
-                }
-              >
-                Delete
-              </button>
+                            <span>
 
-            </div>
+                                ₹
 
-          </div>
+                                {transactionToDelete.amount.toLocaleString(
+                                    "en-IN"
+                                )}
 
-        </div>
+                            </span>
 
-      )}
+                        </div>
 
-    </main>
-  );
+
+                        <p className="delete-confirm-note">
+
+                            This will update
+                            the balance of{" "}
+
+                            <strong>
+
+                                {
+                                    transactionToDelete.accountName
+                                }
+
+                            </strong>.
+
+                        </p>
+
+
+                        <div className="delete-confirm-actions">
+
+
+                            <button
+
+                                className="delete-cancel-button"
+
+                                onClick={() =>
+                                    setTransactionToDelete(
+                                        null
+                                    )
+                                }
+
+                            >
+
+                                Cancel
+
+                            </button>
+
+
+                            <button
+
+                                className="delete-confirm-button"
+
+                                onClick={() =>
+                                    handleDeleteTransaction(
+                                        transactionToDelete
+                                    )
+                                }
+
+                            >
+
+                                Delete
+
+                            </button>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+            )}
+
+
+        </main>
+
+    );
+
 }
+
 
 export default Transactions;

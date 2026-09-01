@@ -12,26 +12,49 @@ import AddTransactionModal from "./AddTransactionModal";
 import { useNavigate } from "react-router-dom";
 
 
+// =========================================================
+// TRANSACTION INTERFACE
+// =========================================================
 
 interface Transaction {
+
   id: number;
-  type: "income" | "expense";
+
+  type:
+    | "income"
+    | "expense";
+
   category: string;
+
   description: string;
+
   amount: number;
+
   date: string;
+
   accountName: string;
+
 }
 
 
+// =========================================================
+// ACCOUNT INTERFACE
+// =========================================================
 
 interface Account {
+
   name: string;
+
   type: string;
+
   balance: number;
+
 }
 
 
+// =========================================================
+// PROPS
+// =========================================================
 
 interface RecentTransactionsProps {
 
@@ -58,6 +81,9 @@ interface RecentTransactionsProps {
 }
 
 
+// =========================================================
+// COMPONENT
+// =========================================================
 
 function RecentTransactions({
 
@@ -78,38 +104,174 @@ function RecentTransactions({
     useNavigate();
 
 
-
   // =====================================================
   // MODAL STATES
   // =====================================================
 
   const [
+
     showAddTransaction,
+
     setShowAddTransaction,
+
   ] =
     useState(false);
 
 
-
   const [
+
     transactionToDelete,
+
     setTransactionToDelete,
+
   ] =
     useState<Transaction | null>(
       null
     );
-
 
 
   const [
+
     transactionToEdit,
+
     setTransactionToEdit,
+
   ] =
     useState<Transaction | null>(
       null
     );
 
 
+  // =====================================================
+  // CATEGORY ICON
+  // =====================================================
+
+  const getCategoryIcon = (
+    category: string
+  ) => {
+
+    if (
+      category === "food"
+    ) {
+      return "🍔";
+    }
+
+
+    if (
+      category === "transport"
+    ) {
+      return "🚕";
+    }
+
+
+    if (
+      category === "shopping"
+    ) {
+      return "🛍️";
+    }
+
+
+    if (
+      category === "salary"
+    ) {
+      return "💼";
+    }
+
+
+    if (
+      category === "bills"
+    ) {
+      return "💡";
+    }
+
+
+    if (
+      category === "entertainment"
+    ) {
+      return "🎮";
+    }
+
+
+    if (
+      category === "health"
+    ) {
+      return "🏥";
+    }
+
+
+    if (
+      category === "freelance"
+    ) {
+      return "💻";
+    }
+
+
+    return "💰";
+
+  };
+
+
+  // =====================================================
+  // TRANSACTION AMOUNT
+  // =====================================================
+
+  const getTransactionAmount = (
+    transaction: Transaction
+  ) => {
+
+    if (
+      transaction.type === "income"
+    ) {
+
+      return (
+        <>
+          +₹
+          {transaction.amount.toLocaleString(
+            "en-IN"
+          )}
+        </>
+      );
+
+    }
+
+
+    return (
+      <>
+        -₹
+        {transaction.amount.toLocaleString(
+          "en-IN"
+        )}
+      </>
+    );
+
+  };
+
+
+  // =====================================================
+  // TRANSACTION AMOUNT CLASS
+  // =====================================================
+
+  const getTransactionClass = (
+    transaction: Transaction
+  ) => {
+
+    if (
+      transaction.type === "income"
+    ) {
+
+      return "transaction-income";
+
+    }
+
+
+    return "transaction-expense";
+
+  };
+
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
 
@@ -137,19 +299,21 @@ function RecentTransactions({
         </div>
 
 
-
         <div className="transactions-header-actions">
 
 
           {/* ADD BUTTON */}
 
           <button
+
             className="add-transaction-button"
+
             onClick={() =>
               setShowAddTransaction(
                 true
               )
             }
+
           >
 
             + Add
@@ -157,16 +321,18 @@ function RecentTransactions({
           </button>
 
 
-
           {/* VIEW ALL BUTTON */}
 
           <button
+
             className="view-transactions-button"
+
             onClick={() =>
               navigate(
                 "/transactions"
               )
             }
+
           >
 
             View all
@@ -180,7 +346,6 @@ function RecentTransactions({
       </div>
 
 
-
       {/* =================================================
           TRANSACTION LIST
       ================================================= */}
@@ -188,183 +353,176 @@ function RecentTransactions({
       <div className="transactions-list">
 
 
-        {transactions.map(
+        {transactions
 
-          (transaction) => (
+          .slice()
 
-            <div
-              className="transaction-row"
-              key={transaction.id}
-            >
+          .sort(
 
+            (a, b) =>
 
-              {/* LEFT SIDE */}
+              new Date(
+                b.date
+              ).getTime()
 
-              <div className="transaction-left">
+              -
 
-
-                <div
-                  className={
-                    `transaction-icon ${transaction.category}`
-                  }
-                >
-
-                  {transaction.category ===
-                    "food" &&
-                    "🍔"}
-
-                  {transaction.category ===
-                    "transport" &&
-                    "🚕"}
-
-                  {transaction.category ===
-                    "shopping" &&
-                    "🛍️"}
-
-                  {transaction.category ===
-                    "salary" &&
-                    "💼"}
-
-                  {transaction.category ===
-                    "bills" &&
-                    "💡"}
-
-                  {transaction.category ===
-                    "entertainment" &&
-                    "🎮"}
-
-                  {transaction.category ===
-                    "health" &&
-                    "🏥"}
-
-                  {transaction.category ===
-                    "freelance" &&
-                    "💻"}
-
-                  {transaction.category ===
-                    "other" &&
-                    "💰"}
-
-                </div>
-
-
-
-                <div>
-
-                  <strong>
-                    {transaction.description}
-                  </strong>
-
-
-                  <span>
-                    {transaction.date}
-                  </span>
-
-                </div>
-
-
-              </div>
-
-
-
-              {/* RIGHT SIDE */}
-
-              <div className="transaction-right">
-
-
-                {/* AMOUNT */}
-
-                <strong
-
-                  className={
-
-                    transaction.type ===
-                    "income"
-
-                      ? "transaction-income"
-
-                      : "transaction-expense"
-
-                  }
-
-                >
-
-                  {transaction.type ===
-                  "income"
-
-                    ? "+"
-
-                    : "-"}
-
-                  ₹{
-                    transaction.amount.toLocaleString(
-                      "en-IN"
-                    )
-                  }
-
-                </strong>
-
-
-
-                {/* EDIT BUTTON */}
-
-                <button
-
-                  className="edit-transaction-button"
-
-                  onClick={() =>
-                    setTransactionToEdit(
-                      transaction
-                    )
-                  }
-
-                  title="Edit transaction"
-
-                >
-
-                  <Pencil
-                    size={14}
-                  />
-
-                </button>
-
-
-
-                {/* DELETE BUTTON */}
-
-                <button
-
-                  className="delete-transaction-button"
-
-                  onClick={() =>
-                    setTransactionToDelete(
-                      transaction
-                    )
-                  }
-
-                  title="Delete transaction"
-
-                >
-
-                  <Trash2
-                    size={14}
-                  />
-
-                </button>
-
-
-              </div>
-
-
-            </div>
+              new Date(
+                a.date
+              ).getTime()
 
           )
 
-        )}
+          .slice(
+            0,
+            5
+          )
+
+          .map(
+
+            (transaction) => (
+
+              <div
+
+                className="transaction-row"
+
+                key={
+                  transaction.id
+                }
+
+              >
+
+
+                {/* LEFT SIDE */}
+
+                <div className="transaction-left">
+
+
+                  <div
+
+                    className={
+                      `transaction-icon ${transaction.category}`
+                    }
+
+                  >
+
+                    {getCategoryIcon(
+                      transaction.category
+                    )}
+
+                  </div>
+
+
+                  <div>
+
+
+                    <strong>
+
+                      {
+                        transaction.description
+                      }
+
+                    </strong>
+
+
+                    <span>
+
+                      {
+                        transaction.date
+                      }
+
+                    </span>
+
+
+                  </div>
+
+
+                </div>
+
+
+                {/* RIGHT SIDE */}
+
+                <div className="transaction-right">
+
+
+                  {/* AMOUNT */}
+
+                  <strong
+
+                    className={
+                      getTransactionClass(
+                        transaction
+                      )
+                    }
+
+                  >
+
+                    {
+                      getTransactionAmount(
+                        transaction
+                      )
+                    }
+
+                  </strong>
+
+
+                  {/* EDIT BUTTON */}
+
+                  <button
+
+                    className="edit-transaction-button"
+
+                    onClick={() =>
+                      setTransactionToEdit(
+                        transaction
+                      )
+                    }
+
+                    title="Edit transaction"
+
+                  >
+
+                    <Pencil
+                      size={14}
+                    />
+
+                  </button>
+
+
+                  {/* DELETE BUTTON */}
+
+                  <button
+
+                    className="delete-transaction-button"
+
+                    onClick={() =>
+                      setTransactionToDelete(
+                        transaction
+                      )
+                    }
+
+                    title="Delete transaction"
+
+                  >
+
+                    <Trash2
+                      size={14}
+                    />
+
+                  </button>
+
+
+                </div>
+
+
+              </div>
+
+            )
+
+          )}
 
 
       </div>
-
 
 
       {/* =================================================
@@ -394,7 +552,6 @@ function RecentTransactions({
       )}
 
 
-
       {/* =================================================
           EDIT TRANSACTION MODAL
       ================================================= */}
@@ -403,11 +560,13 @@ function RecentTransactions({
 
         <AddTransactionModal
 
-          onClose={() =>
+          onClose={() => {
+
             setTransactionToEdit(
               null
-            )
-          }
+            );
+
+          }}
 
           onAddTransaction={
             onAddTransaction
@@ -428,7 +587,6 @@ function RecentTransactions({
         />
 
       )}
-
 
 
       {/* =================================================
@@ -454,8 +612,9 @@ function RecentTransactions({
 
             className="delete-confirm-modal"
 
-            onClick={(e) =>
-              e.stopPropagation()
+            onClick={
+              (e) =>
+                e.stopPropagation()
             }
 
           >
@@ -470,11 +629,9 @@ function RecentTransactions({
             </div>
 
 
-
             <h3>
               Delete Transaction?
             </h3>
-
 
 
             <p>
@@ -482,43 +639,31 @@ function RecentTransactions({
             </p>
 
 
-
             <div className="delete-confirm-details">
 
 
               <strong>
+
                 {
                   transactionToDelete.description
                 }
-              </strong>
 
+              </strong>
 
 
               <span
 
                 className={
-
-                  transactionToDelete.type ===
-                  "income"
-
-                    ? "transaction-income"
-
-                    : "transaction-expense"
-
+                  getTransactionClass(
+                    transactionToDelete
+                  )
                 }
 
               >
 
-                {transactionToDelete.type ===
-                "income"
-
-                  ? "+"
-
-                  : "-"}
-
-                ₹{
-                  transactionToDelete.amount.toLocaleString(
-                    "en-IN"
+                {
+                  getTransactionAmount(
+                    transactionToDelete
                   )
                 }
 
@@ -526,7 +671,6 @@ function RecentTransactions({
 
 
             </div>
-
 
 
             <p className="delete-confirm-note">
@@ -542,7 +686,6 @@ function RecentTransactions({
               </strong>.
 
             </p>
-
 
 
             <div className="delete-confirm-actions">
@@ -565,12 +708,12 @@ function RecentTransactions({
               </button>
 
 
-
               <button
 
                 className="delete-confirm-button"
 
                 onClick={() => {
+
 
                   onDeleteTransaction(
                     transactionToDelete
@@ -580,6 +723,7 @@ function RecentTransactions({
                   setTransactionToDelete(
                     null
                   );
+
 
                 }}
 

@@ -18,6 +18,10 @@ import BudgetCard from "../components/BudgetCard";
 import { useEffect, useState } from "react";
 
 
+// =====================================================
+// ACCOUNT INTERFACE
+// =====================================================
+
 interface Account {
   name: string;
   type: string;
@@ -25,16 +29,32 @@ interface Account {
 }
 
 
+// =====================================================
+// TRANSACTION INTERFACE
+// =====================================================
+
 interface Transaction {
   id: number;
-  type: "income" | "expense";
+
+  type:
+    | "income"
+    | "expense";
+
   category: string;
+
   description: string;
+
   amount: number;
+
   date: string;
+
   accountName: string;
 }
 
+
+// =====================================================
+// COMPONENT
+// =====================================================
 
 function Dashboard() {
 
@@ -92,17 +112,32 @@ function Dashboard() {
     });
 
 
-  // Save accounts
+  // =====================================================
+  // SAVE ACCOUNTS
+  // =====================================================
 
   useEffect(() => {
 
     localStorage.setItem(
+
       "spendwise_accounts",
-      JSON.stringify(accounts)
+
+      JSON.stringify(
+        accounts
+      )
+
+    );
+
+
+    window.dispatchEvent(
+
+      new Event(
+        "spendwise_accounts_updated"
+      )
+
     );
 
   }, [accounts]);
-
 
 
   // =====================================================
@@ -174,17 +209,117 @@ function Dashboard() {
     });
 
 
-  // Save transactions
+  // =====================================================
+  // SAVE TRANSACTIONS
+  // =====================================================
 
   useEffect(() => {
 
     localStorage.setItem(
+
       "spendwise_transactions",
-      JSON.stringify(transactions)
+
+      JSON.stringify(
+        transactions
+      )
+
+    );
+
+
+    window.dispatchEvent(
+
+      new Event(
+        "spendwise_transactions_updated"
+      )
+
     );
 
   }, [transactions]);
 
+
+  // =====================================================
+  // UPDATE ACCOUNT BALANCE
+  // =====================================================
+
+  const updateAccountBalance = (
+
+    currentAccounts: Account[],
+
+    transaction: Transaction,
+
+    action:
+      | "add"
+      | "remove"
+
+  ) => {
+
+
+    return currentAccounts.map(
+      (account) => {
+
+
+        if (
+
+          account.name !==
+          transaction.accountName
+
+        ) {
+
+          return account;
+
+        }
+
+
+        let balanceChange =
+          transaction.amount;
+
+
+        // Expense decreases balance
+
+        if (
+
+          transaction.type ===
+          "expense"
+
+        ) {
+
+          balanceChange =
+            -balanceChange;
+
+        }
+
+
+        // Removing reverses transaction
+
+        if (
+
+          action ===
+          "remove"
+
+        ) {
+
+          balanceChange =
+            -balanceChange;
+
+        }
+
+
+        return {
+
+          ...account,
+
+          balance:
+
+            account.balance +
+            balanceChange,
+
+        };
+
+      }
+
+    );
+
+  };
 
 
   // =====================================================
@@ -195,16 +330,17 @@ function Dashboard() {
     accounts.reduce(
 
       (total, account) =>
-        total + account.balance,
+
+        total +
+        account.balance,
 
       0
 
     );
 
 
-
   // =====================================================
-  // CURRENT MONTH TRANSACTIONS
+  // CURRENT DATE
   // =====================================================
 
   const now =
@@ -214,6 +350,7 @@ function Dashboard() {
   const getTransactionDate =
     (dateString: string) => {
 
+
       const parsedDate =
         new Date(
           `${dateString}T00:00:00`
@@ -221,9 +358,11 @@ function Dashboard() {
 
 
       if (
+
         !isNaN(
           parsedDate.getTime()
         )
+
       ) {
 
         return parsedDate;
@@ -244,11 +383,15 @@ function Dashboard() {
     now.getFullYear();
 
 
+  // =====================================================
+  // CURRENT MONTH TRANSACTIONS
+  // =====================================================
 
   const monthlyTransactions =
     transactions.filter(
 
       (transaction) => {
+
 
         const transactionDate =
           getTransactionDate(
@@ -256,7 +399,9 @@ function Dashboard() {
           );
 
 
-        if (!transactionDate) {
+        if (
+          !transactionDate
+        ) {
 
           return false;
 
@@ -266,7 +411,9 @@ function Dashboard() {
         return (
 
           transactionDate.getMonth() ===
-            currentMonth &&
+            currentMonth
+
+          &&
 
           transactionDate.getFullYear() ===
             currentYear
@@ -276,7 +423,6 @@ function Dashboard() {
       }
 
     );
-
 
 
   // =====================================================
@@ -289,6 +435,7 @@ function Dashboard() {
       .filter(
 
         (transaction) =>
+
           transaction.type ===
           "income"
 
@@ -296,14 +443,17 @@ function Dashboard() {
 
       .reduce(
 
-        (total, transaction) =>
+        (
+          total,
+          transaction
+        ) =>
+
           total +
           transaction.amount,
 
         0
 
       );
-
 
 
   // =====================================================
@@ -316,6 +466,7 @@ function Dashboard() {
       .filter(
 
         (transaction) =>
+
           transaction.type ===
           "expense"
 
@@ -323,14 +474,17 @@ function Dashboard() {
 
       .reduce(
 
-        (total, transaction) =>
+        (
+          total,
+          transaction
+        ) =>
+
           total +
           transaction.amount,
 
         0
 
       );
-
 
 
   // =====================================================
@@ -342,18 +496,18 @@ function Dashboard() {
     totalExpenses;
 
 
-
   const savingsRate =
 
     totalIncome > 0
 
       ? (
+
           totalSavings /
           totalIncome
+
         ) * 100
 
       : 0;
-
 
 
   // =====================================================
@@ -368,20 +522,15 @@ function Dashboard() {
       <Sidebar />
 
 
-      {/* ===============================================
-          MAIN CONTENT
-      =============================================== */}
-
       <section className="dashboard-main">
 
+
+        {/* HEADER */}
 
         <DashboardHeader />
 
 
-
-        {/* ===============================================
-            SUMMARY
-        =============================================== */}
+        {/* SUMMARY CARDS */}
 
         <section className="summary-grid">
 
@@ -394,7 +543,7 @@ function Dashboard() {
               "en-IN"
             )}`}
 
-            description="8.4% from last month"
+            description="Across all accounts"
 
             type="balance"
 
@@ -405,7 +554,6 @@ function Dashboard() {
             }
 
           />
-
 
 
           <SummaryCard
@@ -429,7 +577,6 @@ function Dashboard() {
           />
 
 
-
           <SummaryCard
 
             title="Total Expenses"
@@ -449,7 +596,6 @@ function Dashboard() {
             }
 
           />
-
 
 
           <SummaryCard
@@ -480,24 +626,166 @@ function Dashboard() {
         </section>
 
 
-
-        {/* ===============================================
-            MIDDLE SECTION
-        =============================================== */}
+        {/* MIDDLE SECTION */}
 
         <section className="dashboard-grid">
 
 
           <SpendingOverview
-            transactions={transactions}
+
+            transactions={
+              transactions
+            }
+
           />
 
 
           <AccountsCard
 
-            accounts={accounts}
+            accounts={
+              accounts
+            }
 
-            setAccounts={setAccounts}
+            setAccounts={
+              setAccounts
+            }
+
+
+            // ===========================================
+            // ADD ACCOUNT INITIAL BALANCE TRANSACTION
+            // ===========================================
+
+            onAddTransaction={
+
+              (newTransaction) => {
+
+
+                setTransactions(
+
+                  (currentTransactions) => [
+
+                    newTransaction,
+
+                    ...currentTransactions,
+
+                  ]
+
+                );
+
+              }
+
+            }
+
+
+            // ===========================================
+            // EDIT ACCOUNT
+            // ===========================================
+
+            onEditAccount={
+
+              (
+                oldAccount,
+                updatedAccount
+              ) => {
+
+
+                const duplicateType =
+                  accounts.some(
+
+                    (account) =>
+
+                      account.type ===
+                        updatedAccount.type
+
+                      &&
+
+                      account.name !==
+                        oldAccount.name
+
+                  );
+
+
+                if (
+                  duplicateType
+                ) {
+
+                  return;
+
+                }
+
+
+                setAccounts(
+
+                  (currentAccounts) =>
+
+                    currentAccounts.map(
+
+                      (account) =>
+
+                        account.name ===
+                        oldAccount.name
+
+                          ? updatedAccount
+
+                          : account
+
+                    )
+
+                );
+
+
+                // =========================================
+                // UPDATE ACCOUNT NAME IN TRANSACTIONS
+                // =========================================
+
+                if (
+
+                  oldAccount.name !==
+                  updatedAccount.name
+
+                ) {
+
+
+                  setTransactions(
+
+                    (currentTransactions) =>
+
+                      currentTransactions.map(
+
+                        (transaction) => {
+
+                          if (
+
+                            transaction.accountName ===
+                            oldAccount.name
+
+                          ) {
+
+                            return {
+
+                              ...transaction,
+
+                              accountName:
+                                updatedAccount.name,
+
+                            };
+
+                          }
+
+
+                          return transaction;
+
+                        }
+
+                      )
+
+                  );
+
+                }
+
+              }
+
+            }
 
           />
 
@@ -505,24 +793,51 @@ function Dashboard() {
         </section>
 
 
-
-        {/* ===============================================
-            BOTTOM SECTION
-        =============================================== */}
+        {/* BOTTOM SECTION */}
 
         <section className="bottom-grid">
 
 
-          {/* =============================================
-              RECENT TRANSACTIONS
-          ============================================== */}
+          {/* RECENT TRANSACTIONS */}
 
           <RecentTransactions
 
-            transactions={transactions}
+            transactions={
+              transactions
 
-            accounts={accounts}
+                .slice()
 
+                .sort(
+
+                  (a, b) =>
+
+                    new Date(
+
+                      `${b.date}T00:00:00`
+
+                    ).getTime()
+
+                    -
+
+                    new Date(
+
+                      `${a.date}T00:00:00`
+
+                    ).getTime()
+
+                )
+
+                .slice(
+                  0,
+                  5
+                )
+
+            }
+
+
+            accounts={
+              accounts
+            }
 
 
             // ===========================================
@@ -531,16 +846,14 @@ function Dashboard() {
 
             onAddTransaction={
 
-              (newTransaction) => {
+              (
+                newTransaction
+              ) => {
 
-
-                // Add transaction
 
                 setTransactions(
 
-                  (
-                    currentTransactions
-                  ) => [
+                  (currentTransactions) => [
 
                     newTransaction,
 
@@ -551,60 +864,17 @@ function Dashboard() {
                 );
 
 
-
-                // Update account balance
-
                 setAccounts(
 
-                  (
-                    currentAccounts
-                  ) =>
+                  (currentAccounts) =>
 
-                    currentAccounts.map(
+                    updateAccountBalance(
 
-                      (account) => {
+                      currentAccounts,
 
+                      newTransaction,
 
-                        if (
-
-                          account.name !==
-                          newTransaction.accountName
-
-                        ) {
-
-                          return account;
-
-                        }
-
-
-
-                        const newBalance =
-
-                          newTransaction.type ===
-                          "income"
-
-                            ? (
-                                account.balance +
-                                newTransaction.amount
-                              )
-
-                            : (
-                                account.balance -
-                                newTransaction.amount
-                              );
-
-
-
-                        return {
-
-                          ...account,
-
-                          balance:
-                            newBalance,
-
-                        };
-
-                      }
+                      "add"
 
                     )
 
@@ -615,23 +885,20 @@ function Dashboard() {
             }
 
 
-
             // ===========================================
             // DELETE TRANSACTION
             // ===========================================
 
             onDeleteTransaction={
 
-              (transaction) => {
+              (
+                transaction
+              ) => {
 
-
-                // Remove transaction
 
                 setTransactions(
 
-                  (
-                    currentTransactions
-                  ) =>
+                  (currentTransactions) =>
 
                     currentTransactions.filter(
 
@@ -647,60 +914,17 @@ function Dashboard() {
                 );
 
 
-
-                // Restore account balance
-
                 setAccounts(
 
-                  (
-                    currentAccounts
-                  ) =>
+                  (currentAccounts) =>
 
-                    currentAccounts.map(
+                    updateAccountBalance(
 
-                      (account) => {
+                      currentAccounts,
 
+                      transaction,
 
-                        if (
-
-                          account.name !==
-                          transaction.accountName
-
-                        ) {
-
-                          return account;
-
-                        }
-
-
-
-                        const restoredBalance =
-
-                          transaction.type ===
-                          "expense"
-
-                            ? (
-                                account.balance +
-                                transaction.amount
-                              )
-
-                            : (
-                                account.balance -
-                                transaction.amount
-                              );
-
-
-
-                        return {
-
-                          ...account,
-
-                          balance:
-                            restoredBalance,
-
-                        };
-
-                      }
+                      "remove"
 
                     )
 
@@ -711,7 +935,6 @@ function Dashboard() {
             }
 
 
-
             // ===========================================
             // EDIT TRANSACTION
             // ===========================================
@@ -719,20 +942,19 @@ function Dashboard() {
             onEditTransaction={
 
               (
+
                 oldTransaction,
+
                 updatedTransaction
+
               ) => {
 
 
-                // ---------------------------------------
                 // Update transaction list
-                // ---------------------------------------
 
                 setTransactions(
 
-                  (
-                    currentTransactions
-                  ) =>
+                  (currentTransactions) =>
 
                     currentTransactions.map(
 
@@ -752,123 +974,39 @@ function Dashboard() {
                 );
 
 
+                // Remove old transaction effect
 
-                // ---------------------------------------
-                // Update account balances
-                // ---------------------------------------
+                // Then apply updated transaction effect
 
                 setAccounts(
 
-                  (
-                    currentAccounts
-                  ) =>
-
-                    currentAccounts.map(
-
-                      (
-                        account
-                      ) => {
+                  (currentAccounts) => {
 
 
-                        let newBalance =
-                          account.balance;
+                    const accountsWithoutOldEffect =
+
+                      updateAccountBalance(
+
+                        currentAccounts,
+
+                        oldTransaction,
+
+                        "remove"
+
+                      );
 
 
+                    return updateAccountBalance(
 
-                        // =================================
-                        // STEP 1
-                        // Undo OLD transaction
-                        // =================================
+                      accountsWithoutOldEffect,
 
-                        if (
+                      updatedTransaction,
 
-                          account.name ===
-                          oldTransaction.accountName
+                      "add"
 
-                        ) {
+                    );
 
-
-                          if (
-
-                            oldTransaction.type ===
-                            "expense"
-
-                          ) {
-
-
-                            // Expense was previously removed
-                            // from balance, so add it back
-
-                            newBalance +=
-                              oldTransaction.amount;
-
-                          }
-
-                          else {
-
-
-                            // Income was previously added
-                            // to balance, so remove it
-
-                            newBalance -=
-                              oldTransaction.amount;
-
-                          }
-
-                        }
-
-
-
-                        // =================================
-                        // STEP 2
-                        // Apply UPDATED transaction
-                        // =================================
-
-                        if (
-
-                          account.name ===
-                          updatedTransaction.accountName
-
-                        ) {
-
-
-                          if (
-
-                            updatedTransaction.type ===
-                            "expense"
-
-                          ) {
-
-
-                            newBalance -=
-                              updatedTransaction.amount;
-
-                          }
-
-                          else {
-
-
-                            newBalance +=
-                              updatedTransaction.amount;
-
-                          }
-
-                        }
-
-
-
-                        return {
-
-                          ...account,
-
-                          balance:
-                            newBalance,
-
-                        };
-
-                      }
-
-                    )
+                  }
 
                 );
 
@@ -879,10 +1017,7 @@ function Dashboard() {
           />
 
 
-
-          {/* =============================================
-              BUDGET
-          ============================================== */}
+          {/* MONTHLY BUDGET */}
 
           <BudgetCard
 

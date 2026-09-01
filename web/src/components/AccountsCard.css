@@ -252,3 +252,22 @@
 .account-delete-button:hover {
   background: #fee2e2;
 }
+
+.account-edit-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #64748b;
+
+  transition: 0.2s ease;
+}
+
+.account-edit-button:hover {
+  color: #0f766e;
+  transform: scale(1.08);
+}

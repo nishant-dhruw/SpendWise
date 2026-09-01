@@ -1,8 +1,5 @@
 import { useState } from "react";
-
-import {
-  X,
-} from "lucide-react";
+import { X } from "lucide-react";
 
 import "./AddAccountModal.css";
 
@@ -14,46 +11,59 @@ interface Account {
 }
 
 
-interface AddAccountModalProps {
+interface EditAccountModalProps {
+  account: Account;
 
   accounts: Account[];
 
   onClose: () => void;
 
-  onAddAccount: (
-    account: Account
+  onEditAccount: (
+    oldAccount: Account,
+    updatedAccount: Account
   ) => void;
-
 }
 
 
-function AddAccountModal({
+function EditAccountModal({
+
+  account,
 
   accounts,
 
   onClose,
 
-  onAddAccount,
+  onEditAccount,
 
-}: AddAccountModalProps) {
+}: EditAccountModalProps) {
 
+
+  // =========================================
+  // FORM STATES
+  // =========================================
 
   const [
     accountName,
     setAccountName,
-  ] = useState("");
+  ] = useState(
+    account.name
+  );
 
 
   const [
     accountType,
     setAccountType,
-  ] = useState("");
+  ] = useState(
+    account.type
+  );
 
 
   const [
     balance,
     setBalance,
-  ] = useState("");
+  ] = useState(
+    account.balance.toString()
+  );
 
 
   const [
@@ -73,9 +83,9 @@ function AddAccountModal({
     e.preventDefault();
 
 
-    // -----------------------------------------
-    // ACCOUNT NAME
-    // -----------------------------------------
+    // ---------------------------------------
+    // VALIDATE ACCOUNT NAME
+    // ---------------------------------------
 
     if (
       !accountName.trim()
@@ -90,42 +100,9 @@ function AddAccountModal({
     }
 
 
-    // -----------------------------------------
-    // PREVENT DUPLICATE ACCOUNT NAME
-    // -----------------------------------------
-
-    const duplicateName =
-      accounts.some(
-
-        (account) =>
-
-          account.name
-            .trim()
-            .toLowerCase() ===
-
-          accountName
-            .trim()
-            .toLowerCase()
-
-      );
-
-
-    if (
-      duplicateName
-    ) {
-
-      setError(
-        "An account with this name already exists."
-      );
-
-      return;
-
-    }
-
-
-    // -----------------------------------------
-    // ACCOUNT TYPE
-    // -----------------------------------------
+    // ---------------------------------------
+    // VALIDATE ACCOUNT TYPE
+    // ---------------------------------------
 
     if (
       !accountType
@@ -140,50 +117,9 @@ function AddAccountModal({
     }
 
 
-    // -----------------------------------------
-    // PREVENT DUPLICATE TYPE
-    //
-    // Multiple BANK accounts are allowed.
-    //
-    // Only one Cash, Wallet and Savings
-    // account is allowed.
-    // -----------------------------------------
-
-    if (
-      accountType !== "bank"
-    ) {
-
-
-      const duplicateType =
-        accounts.some(
-
-          (account) =>
-            account.type ===
-            accountType
-
-        );
-
-
-      if (
-        duplicateType
-      ) {
-
-        setError(
-
-          `You already have a ${accountType} account. Only one account of this type is allowed.`
-
-        );
-
-        return;
-
-      }
-
-    }
-
-
-    // -----------------------------------------
-    // BALANCE
-    // -----------------------------------------
+    // ---------------------------------------
+    // VALIDATE BALANCE
+    // ---------------------------------------
 
     if (
 
@@ -206,33 +142,90 @@ function AddAccountModal({
     }
 
 
-    // -----------------------------------------
-    // CREATE ACCOUNT
-    // -----------------------------------------
+    // ---------------------------------------
+    // PREVENT DUPLICATE ACCOUNT NAME
+    // ---------------------------------------
 
-    const newAccount: Account = {
+    const duplicateName =
+      accounts.some(
 
-      name:
-        accountName.trim(),
+        (
+          currentAccount
+        ) =>
 
-      type:
-        accountType,
+          currentAccount.name
+            .trim()
+            .toLowerCase() ===
 
-      balance:
-        Number(balance),
+            accountName
+              .trim()
+              .toLowerCase() &&
 
-    };
+          currentAccount.name !==
+            account.name
+
+      );
 
 
-    onAddAccount(
-      newAccount
+    if (
+      duplicateName
+    ) {
+
+      setError(
+        "An account with this name already exists."
+      );
+
+      return;
+
+    }
+
+
+    // ---------------------------------------
+    // CREATE UPDATED ACCOUNT
+    // ---------------------------------------
+
+    const updatedAccount:
+      Account = {
+
+        name:
+          accountName.trim(),
+
+        type:
+          accountType,
+
+        balance:
+          Number(balance),
+
+      };
+
+
+    // ---------------------------------------
+    // SEND OLD + UPDATED ACCOUNT
+    // ---------------------------------------
+
+    onEditAccount(
+
+      account,
+
+      updatedAccount
+
     );
 
 
-    setError("");
+    // ---------------------------------------
+    // CLEAR ERROR
+    // ---------------------------------------
+
+    setError(
+      ""
+    );
 
 
-    // Parent component closes modal
+    // ---------------------------------------
+    // CLOSE MODAL
+    // ---------------------------------------
+
+    onClose();
 
   };
 
@@ -247,9 +240,7 @@ function AddAccountModal({
 
       className="modal-overlay"
 
-      onClick={
-        onClose
-      }
+      onClick={onClose}
 
     >
 
@@ -266,7 +257,9 @@ function AddAccountModal({
       >
 
 
-        {/* HEADER */}
+        {/* =====================================
+            HEADER
+        ====================================== */}
 
         <div className="modal-header">
 
@@ -274,12 +267,12 @@ function AddAccountModal({
           <div>
 
             <h2>
-              Add Account
+              Edit Account
             </h2>
 
 
             <p>
-              Add a new account to track your money.
+              Update your account details.
             </p>
 
           </div>
@@ -291,9 +284,7 @@ function AddAccountModal({
 
             className="modal-close"
 
-            onClick={
-              onClose
-            }
+            onClick={onClose}
 
             aria-label="Close"
 
@@ -307,7 +298,9 @@ function AddAccountModal({
         </div>
 
 
-        {/* FORM */}
+        {/* =====================================
+            FORM
+        ====================================== */}
 
         <form
 
@@ -347,7 +340,9 @@ function AddAccountModal({
                     e.target.value
                   );
 
-                  setError("");
+                  setError(
+                    ""
+                  );
 
                 }
               }
@@ -381,7 +376,9 @@ function AddAccountModal({
                     e.target.value
                   );
 
-                  setError("");
+                  setError(
+                    ""
+                  );
 
                 }
               }
@@ -389,92 +386,23 @@ function AddAccountModal({
             >
 
 
-              <option
-
-                value=""
-
-                disabled
-
-              >
-
-                Select account type
-
-              </option>
-
-
-              {/* CASH - ONLY ONE */}
-
-              <option
-
-                value="cash"
-
-                disabled={
-                  accounts.some(
-                    (account) =>
-                      account.type ===
-                      "cash"
-                  )
-                }
-
-              >
-
+              <option value="cash">
                 Cash
-
               </option>
 
 
-              {/* BANK - MULTIPLE ALLOWED */}
-
-              <option
-
-                value="bank"
-
-              >
-
+              <option value="bank">
                 Bank Account
-
               </option>
 
 
-              {/* WALLET - ONLY ONE */}
-
-              <option
-
-                value="wallet"
-
-                disabled={
-                  accounts.some(
-                    (account) =>
-                      account.type ===
-                      "wallet"
-                  )
-                }
-
-              >
-
+              <option value="wallet">
                 Online Wallet
-
               </option>
 
 
-              {/* SAVINGS - ONLY ONE */}
-
-              <option
-
-                value="savings"
-
-                disabled={
-                  accounts.some(
-                    (account) =>
-                      account.type ===
-                      "savings"
-                  )
-                }
-
-              >
-
+              <option value="savings">
                 Savings Account
-
               </option>
 
 
@@ -521,7 +449,9 @@ function AddAccountModal({
                       e.target.value
                     );
 
-                    setError("");
+                    setError(
+                      ""
+                    );
 
                   }
                 }
@@ -535,7 +465,7 @@ function AddAccountModal({
           </div>
 
 
-          {/* ERROR */}
+          {/* ERROR MESSAGE */}
 
           {error && (
 
@@ -559,9 +489,7 @@ function AddAccountModal({
 
               className="cancel-button"
 
-              onClick={
-                onClose
-              }
+              onClick={onClose}
 
             >
 
@@ -578,7 +506,7 @@ function AddAccountModal({
 
             >
 
-              Add Account
+              Save Changes
 
             </button>
 
@@ -599,4 +527,4 @@ function AddAccountModal({
 }
 
 
-export default AddAccountModal;
+export default EditAccountModal;

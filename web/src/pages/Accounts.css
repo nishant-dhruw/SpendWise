@@ -31,7 +31,6 @@
   color: #8b98ad;
 }
 
-
 .accounts-page-add {
   display: flex;
   align-items: center;
@@ -46,16 +45,17 @@
   color: white;
 
   font-weight: 600;
-
   cursor: pointer;
 
   box-shadow: 0 8px 20px rgba(16, 185, 129, 0.18);
+
+  transition: 0.2s ease;
 }
 
 .accounts-page-add:hover {
   background: #059669;
+  transform: translateY(-1px);
 }
-
 
 /* ================= SUMMARY ================= */
 
@@ -66,7 +66,6 @@
 
   margin-bottom: 28px;
 }
-
 
 .accounts-summary-card {
   background: white;
@@ -79,7 +78,6 @@
   box-shadow: 0 8px 25px rgba(22, 33, 58, 0.04);
 }
 
-
 .accounts-summary-card span {
   display: block;
 
@@ -89,7 +87,6 @@
   margin-bottom: 8px;
 }
 
-
 .accounts-summary-card strong {
   display: block;
 
@@ -98,7 +95,6 @@
   font-size: 26px;
 }
 
-
 .accounts-summary-card small {
   display: block;
 
@@ -106,7 +102,6 @@
 
   color: #10b981;
 }
-
 
 /* ================= LIST ================= */
 
@@ -122,11 +117,9 @@
   box-shadow: 0 8px 25px rgba(22, 33, 58, 0.04);
 }
 
-
 .accounts-page-list-header {
   margin-bottom: 22px;
 }
-
 
 .accounts-page-list-header h2 {
   margin: 0;
@@ -134,13 +127,11 @@
   color: #16213a;
 }
 
-
 .accounts-page-list-header p {
   margin: 5px 0 0;
 
   color: #8b98ad;
 }
-
 
 .accounts-page-grid {
   display: grid;
@@ -150,7 +141,6 @@
 
   gap: 18px;
 }
-
 
 /* ================= ACCOUNT CARD ================= */
 
@@ -167,7 +157,6 @@
     box-shadow 0.2s ease;
 }
 
-
 .account-detail-card:hover {
   transform: translateY(-3px);
 
@@ -175,7 +164,6 @@
     0 12px 28px
     rgba(22, 33, 58, 0.08);
 }
-
 
 .account-detail-top {
   display: flex;
@@ -185,7 +173,6 @@
 
   margin-bottom: 20px;
 }
-
 
 .account-detail-icon {
   width: 48px;
@@ -197,8 +184,9 @@
 
   align-items: center;
   justify-content: center;
-}
 
+  flex-shrink: 0;
+}
 
 .account-detail-icon.cash {
   background: #e7f8f1;
@@ -220,52 +208,95 @@
   color: #8b5cf6;
 }
 
-
-/* ================= ACTIONS ================= */
+/* ================= ACTION BUTTONS ================= */
 
 .account-detail-actions {
-  display: flex;
-  gap: 7px;
-}
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
 
+  gap: 8px;
+
+  flex-shrink: 0;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+}
 
 .account-edit-button,
 .account-delete-button {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
 
   border: none;
-  border-radius: 9px;
+  border-radius: 10px;
 
-  display: flex;
+  display: inline-flex !important;
+
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
+
+  flex-shrink: 0;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+/* EDIT BUTTON */
 
 .account-edit-button {
-  background: #eef8f5;
-  color: #10b981;
+  background: #eef8f5 !important;
+  color: #10b981 !important;
 }
-
-
-.account-delete-button {
-  background: #fff0f0;
-  color: #ef4444;
-}
-
 
 .account-edit-button:hover {
-  background: #dff5ed;
+  background: #dff5ed !important;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 6px 14px
+    rgba(16, 185, 129, 0.15);
 }
 
+/* DELETE BUTTON */
+
+.account-delete-button {
+  background: #fff0f0 !important;
+  color: #ef4444 !important;
+}
 
 .account-delete-button:hover {
-  background: #ffe1e1;
+  background: #fee2e2 !important;
+
+  color: #dc2626 !important;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 6px 14px
+    rgba(239, 68, 68, 0.16);
 }
 
+.account-edit-button svg,
+.account-delete-button svg {
+  display: block !important;
+
+  width: 17px;
+  height: 17px;
+
+  stroke-width: 2.5;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+}
 
 /* ================= INFO ================= */
 
@@ -276,7 +307,6 @@
   font-size: 17px;
 }
 
-
 .account-detail-info span {
   display: block;
 
@@ -285,7 +315,6 @@
   color: #8b98ad;
   font-size: 13px;
 }
-
 
 /* ================= BALANCE ================= */
 
@@ -297,14 +326,12 @@
   border-top: 1px solid #edf1ef;
 }
 
-
 .account-detail-balance span {
   display: block;
 
   color: #8b98ad;
   font-size: 12px;
 }
-
 
 .account-detail-balance strong {
   display: block;
@@ -315,7 +342,6 @@
 
   font-size: 22px;
 }
-
 
 /* ================= ADD CARD ================= */
 
@@ -336,15 +362,15 @@
 
   cursor: pointer;
 
-  transition: 0.2s;
+  transition: 0.2s ease;
 }
-
 
 .account-add-card:hover {
   background: #f1fbf7;
   border-color: #10b981;
-}
 
+  transform: translateY(-2px);
+}
 
 .account-add-icon {
   width: 50px;
@@ -364,11 +390,9 @@
   margin-bottom: 12px;
 }
 
-
 .account-add-card strong {
   color: #16213a;
 }
-
 
 .account-add-card span {
   margin-top: 5px;
@@ -376,7 +400,6 @@
   color: #8b98ad;
   font-size: 12px;
 }
-
 
 /* ================= EDIT MODAL ================= */
 
@@ -397,9 +420,9 @@
   z-index: 1000;
 }
 
-
 .edit-account-modal {
   width: 430px;
+  max-width: calc(100vw - 40px);
 
   background: white;
 
@@ -407,11 +430,12 @@
 
   padding: 28px;
 
+  box-sizing: border-box;
+
   box-shadow:
     0 25px 70px
     rgba(15, 23, 42, 0.22);
 }
-
 
 .edit-account-header {
   display: flex;
@@ -421,13 +445,11 @@
   margin-bottom: 24px;
 }
 
-
 .edit-account-header h2 {
   margin: 0;
 
   color: #16213a;
 }
-
 
 .edit-account-header p {
   margin: 5px 0 0;
@@ -435,7 +457,6 @@
   color: #8b98ad;
   font-size: 13px;
 }
-
 
 .edit-account-header button {
   width: 34px;
@@ -454,7 +475,6 @@
   cursor: pointer;
 }
 
-
 .edit-account-modal label {
   display: block;
 
@@ -466,7 +486,6 @@
   font-size: 13px;
   font-weight: 600;
 }
-
 
 .edit-account-modal input {
   width: 100%;
@@ -484,7 +503,6 @@
   font-size: 14px;
 }
 
-
 .edit-account-modal input:focus {
   border-color: #10b981;
 
@@ -492,7 +510,6 @@
     0 0 0 3px
     rgba(16, 185, 129, 0.1);
 }
-
 
 .edit-account-buttons {
   display: flex;
@@ -503,7 +520,6 @@
 
   margin-top: 25px;
 }
-
 
 .edit-account-buttons button {
   padding: 11px 18px;
@@ -517,13 +533,11 @@
   font-weight: 600;
 }
 
-
 .edit-account-buttons button:first-child {
   background: #f1f5f9;
 
   color: #475569;
 }
-
 
 .edit-account-buttons button:last-child {
   background: #10b981;
@@ -531,27 +545,241 @@
   color: white;
 }
 
+/* ========================================= */
+/* DELETE ACCOUNT MODAL */
+/* ========================================= */
+
+.delete-account-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  backdrop-filter: blur(8px);
+
+  z-index: 3000;
+}
+
+.delete-account-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 430px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border-radius: 24px;
+
+  padding: 34px;
+
+  text-align: center;
+
+  box-shadow:
+    0 30px 80px
+    rgba(15, 23, 42, 0.3);
+
+  animation:
+    deleteModalAppear
+    0.25s
+    ease;
+}
+
+@keyframes deleteModalAppear {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(15px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+/* WARNING ICON */
+
+.delete-warning-icon {
+  width: 72px;
+  height: 72px;
+
+  margin:
+    0 auto
+    22px;
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #fff0f0;
+
+  color: #ef4444;
+
+  box-shadow:
+    0 12px 30px
+    rgba(239, 68, 68, 0.15);
+}
+
+.delete-account-modal h2 {
+  margin:
+    0
+    0
+    12px;
+
+  color: #16213a;
+
+  font-size: 24px;
+
+  font-weight: 700;
+}
+
+.delete-account-modal p {
+  margin: 0;
+
+  color: #64748b;
+
+  line-height: 1.6;
+
+  font-size: 15px;
+}
+
+.delete-account-modal p strong {
+  color: #16213a;
+
+  font-weight: 700;
+}
+
+/* WARNING TEXT */
+
+.delete-warning-text {
+  display: block;
+
+  margin-top: 12px;
+
+  color: #ef4444;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+/* DELETE ACTIONS */
+
+.delete-account-actions {
+  display: flex;
+
+  gap: 12px;
+
+  margin-top: 28px;
+}
+
+.delete-cancel-button {
+  flex: 1;
+
+  padding: 13px 16px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  background: white;
+
+  color: #475569;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.delete-cancel-button:hover {
+  background: #f8fafc;
+
+  border-color: #cbd5e1;
+}
+
+.delete-confirm-button {
+  flex: 1.4;
+
+  display: flex !important;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 13px 16px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #ef4444 !important;
+
+  color: white !important;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.delete-confirm-button:hover {
+  background: #dc2626 !important;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 20px
+    rgba(239, 68, 68, 0.22);
+}
+
+.delete-confirm-button svg {
+  display: block;
+
+  flex-shrink: 0;
+}
 
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 1000px) {
-
   .accounts-page-grid {
     grid-template-columns:
-      repeat(2, 1fr);
+      repeat(2, minmax(0, 1fr));
   }
-
 }
 
-
 @media (max-width: 700px) {
-
   .accounts-main {
     padding: 20px;
   }
+
   .accounts-page-header {
     flex-direction: column;
+
     align-items: flex-start;
+
     gap: 15px;
   }
 
@@ -562,5 +790,19 @@
   .accounts-page-grid {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 500px) {
+  .delete-account-modal {
+    padding: 28px 20px;
+  }
+
+  .delete-account-actions {
+    flex-direction: column;
+  }
+
+  .delete-cancel-button,
+  .delete-confirm-button {
+    width: 100%;
+  }
 }
