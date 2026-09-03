@@ -15,7 +15,14 @@ import AccountsCard from "../components/AccountsCard";
 import RecentTransactions from "../components/RecentTransactions";
 import BudgetCard from "../components/BudgetCard";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useNavigate,
+} from "react-router-dom";
 
 
 // =====================================================
@@ -57,6 +64,43 @@ interface Transaction {
 // =====================================================
 
 function Dashboard() {
+
+  const navigate = useNavigate();
+
+
+  // =====================================================
+  // AUTHENTICATION CHECK
+  // =====================================================
+
+  useEffect(() => {
+
+    const localToken =
+      localStorage.getItem("token");
+
+
+    const sessionToken =
+      sessionStorage.getItem("token");
+
+
+    // Check both storage locations
+
+    if (
+
+      !localToken &&
+      !sessionToken
+
+    ) {
+
+      navigate(
+        "/login",
+        {
+          replace: true,
+        }
+      );
+
+    }
+
+  }, [navigate]);
 
 
   // =====================================================
@@ -518,7 +562,6 @@ function Dashboard() {
 
     <main className="dashboard-page">
 
-
       <Sidebar />
 
 
@@ -651,9 +694,7 @@ function Dashboard() {
             }
 
 
-            // ===========================================
-            // ADD ACCOUNT INITIAL BALANCE TRANSACTION
-            // ===========================================
+            /* ADD ACCOUNT INITIAL BALANCE TRANSACTION */
 
             onAddTransaction={
 
@@ -677,9 +718,7 @@ function Dashboard() {
             }
 
 
-            // ===========================================
-            // EDIT ACCOUNT
-            // ===========================================
+            /* EDIT ACCOUNT */
 
             onEditAccount={
 
@@ -734,9 +773,7 @@ function Dashboard() {
                 );
 
 
-                // =========================================
                 // UPDATE ACCOUNT NAME IN TRANSACTIONS
-                // =========================================
 
                 if (
 
@@ -803,6 +840,7 @@ function Dashboard() {
           <RecentTransactions
 
             transactions={
+
               transactions
 
                 .slice()
@@ -840,9 +878,7 @@ function Dashboard() {
             }
 
 
-            // ===========================================
             // ADD TRANSACTION
-            // ===========================================
 
             onAddTransaction={
 
@@ -885,9 +921,7 @@ function Dashboard() {
             }
 
 
-            // ===========================================
             // DELETE TRANSACTION
-            // ===========================================
 
             onDeleteTransaction={
 
@@ -935,9 +969,7 @@ function Dashboard() {
             }
 
 
-            // ===========================================
             // EDIT TRANSACTION
-            // ===========================================
 
             onEditTransaction={
 
@@ -949,8 +981,6 @@ function Dashboard() {
 
               ) => {
 
-
-                // Update transaction list
 
                 setTransactions(
 
@@ -973,10 +1003,6 @@ function Dashboard() {
 
                 );
 
-
-                // Remove old transaction effect
-
-                // Then apply updated transaction effect
 
                 setAccounts(
 

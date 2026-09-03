@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
 import {
   WalletCards,
   TrendingUp,
@@ -18,26 +19,138 @@ import {
 import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
+
+  // Password visibility
   const [showPassword, setShowPassword] = useState(false);
+
+  // Form data
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // Remember me
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Loading state
+  const [loading, setLoading] = useState(false);
+
+  // Error message
+  const [error, setError] = useState("");
+
+  const handleLogin = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    // Clear previous error
+    setError("");
+
+    // Basic validation
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // IMPORTANT:
+      // Use the normal URL here, not Markdown formatting
+      const response = await fetch(
+        "http://localhost:5000/api/auth/login",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+          }),
+        }
+      );
+
+      // Get response data safely
+      const data = await response.json();
+
+      // Login failed
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "Login failed. Please check your email and password."
+        );
+
+        return;
+      }
+
+      // Check token exists
+      if (!data.token) {
+        setError(
+          "Login was successful, but no authentication token was received."
+        );
+
+        return;
+      }
+
+      // Save authentication token
+      if (rememberMe) {
+        localStorage.setItem("token", data.token);
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(data.user)
+        );
+      } else {
+        sessionStorage.setItem("token", data.token);
+
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify(data.user)
+        );
+      }
+
+      console.log("Login successful:", data);
+
+      // Redirect ONLY after successful login
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error("Login error:", error);
+
+      setError(
+        "Unable to connect to the server. Please make sure the backend server is running."
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="login-page">
 
       {/* Decorative background */}
+
       <div className="decorative-orb orb-top-left"></div>
+
       <div className="decorative-orb orb-bottom-right"></div>
 
       <div className="decorative-dots dots-one"></div>
+
       <div className="decorative-dots dots-two"></div>
 
 
       <div className="login-layout">
+
 
         {/* =====================================================
             LEFT SIDE
         ===================================================== */}
 
         <section className="login-hero">
+
 
           {/* Brand */}
 
@@ -48,6 +161,7 @@ function Login() {
             </div>
 
             <div>
+
               <h1>
                 Spend<span>Wise</span>
               </h1>
@@ -55,6 +169,7 @@ function Login() {
               <p>
                 Know where your money goes.
               </p>
+
             </div>
 
           </div>
@@ -68,10 +183,12 @@ function Login() {
               PERSONAL FINANCE, SIMPLIFIED
             </div>
 
+
             <h2>
               Take control of
               <span>your finances.</span>
             </h2>
+
 
             <p className="hero-description">
               Track your spending, manage your money, set goals,
@@ -83,6 +200,7 @@ function Login() {
 
             <div className="feature-grid">
 
+
               <div className="feature-item">
 
                 <div className="feature-icon">
@@ -91,7 +209,10 @@ function Login() {
 
                 <div>
                   <h3>Track Expenses</h3>
-                  <p>Know where every rupee goes.</p>
+
+                  <p>
+                    Know where every rupee goes.
+                  </p>
                 </div>
 
               </div>
@@ -105,7 +226,10 @@ function Login() {
 
                 <div>
                   <h3>Manage Your Money</h3>
-                  <p>Keep all your accounts in one place.</p>
+
+                  <p>
+                    Keep all your accounts in one place.
+                  </p>
                 </div>
 
               </div>
@@ -119,7 +243,10 @@ function Login() {
 
                 <div>
                   <h3>Achieve Your Goals</h3>
-                  <p>Save today for what matters tomorrow.</p>
+
+                  <p>
+                    Save today for what matters tomorrow.
+                  </p>
                 </div>
 
               </div>
@@ -133,7 +260,10 @@ function Login() {
 
                 <div>
                   <h3>Understand Spending</h3>
-                  <p>Turn your data into useful insights.</p>
+
+                  <p>
+                    Turn your data into useful insights.
+                  </p>
                 </div>
 
               </div>
@@ -145,20 +275,29 @@ function Login() {
 
             <div className="finance-preview">
 
-              {/* Monthly chart */}
+
+              {/* Monthly Chart */}
 
               <div className="preview-card spending-card">
 
                 <div className="preview-header">
 
                   <div>
-                    <span>Monthly overview</span>
-                    <strong>₹42,650</strong>
+
+                    <span>
+                      Monthly overview
+                    </span>
+
+                    <strong>
+                      ₹42,650
+                    </strong>
+
                   </div>
 
                   <MoreHorizontal size={18} />
 
                 </div>
+
 
                 <p className="preview-label">
                   Total spending
@@ -169,7 +308,9 @@ function Login() {
 
                   <div className="chart-line"></div>
 
+
                   <div className="chart-bars">
+
                     <span></span>
                     <span></span>
                     <span></span>
@@ -177,6 +318,7 @@ function Login() {
                     <span></span>
                     <span></span>
                     <span></span>
+
                   </div>
 
                 </div>
@@ -184,41 +326,76 @@ function Login() {
               </div>
 
 
-              {/* Category preview */}
+              {/* Category Preview */}
 
               <div className="preview-card category-card">
 
                 <div className="category-title">
+
                   <PieChart size={19} />
-                  <span>Spending by category</span>
+
+                  <span>
+                    Spending by category
+                  </span>
+
                 </div>
+
 
                 <div className="category-content">
 
                   <div className="donut-chart">
+
                     <div className="donut-hole">
                       100%
                     </div>
+
                   </div>
+
 
                   <div className="category-list">
 
                     <div>
+
                       <i className="dot food"></i>
-                      <span>Food</span>
-                      <strong>₹12,450</strong>
+
+                      <span>
+                        Food
+                      </span>
+
+                      <strong>
+                        ₹12,450
+                      </strong>
+
                     </div>
 
+
                     <div>
+
                       <i className="dot transport"></i>
-                      <span>Transport</span>
-                      <strong>₹8,500</strong>
+
+                      <span>
+                        Transport
+                      </span>
+
+                      <strong>
+                        ₹8,500
+                      </strong>
+
                     </div>
 
+
                     <div>
+
                       <i className="dot shopping"></i>
-                      <span>Shopping</span>
-                      <strong>₹6,500</strong>
+
+                      <span>
+                        Shopping
+                      </span>
+
+                      <strong>
+                        ₹6,500
+                      </strong>
+
                     </div>
 
                   </div>
@@ -234,6 +411,7 @@ function Login() {
         </section>
 
 
+
         {/* =====================================================
             RIGHT SIDE
         ===================================================== */}
@@ -242,7 +420,8 @@ function Login() {
 
           <div className="login-card">
 
-            {/* Mobile brand */}
+
+            {/* Mobile Brand */}
 
             <div className="mobile-brand">
 
@@ -250,15 +429,23 @@ function Login() {
                 <WalletCards size={23} />
               </div>
 
+
               <div>
-                <strong>SpendWise</strong>
-                <span>Know where your money goes.</span>
+
+                <strong>
+                  SpendWise
+                </strong>
+
+                <span>
+                  Know where your money goes.
+                </span>
+
               </div>
 
             </div>
 
 
-            {/* Login icon */}
+            {/* Login Icon */}
 
             <div className="login-icon-wrapper">
 
@@ -288,9 +475,35 @@ function Login() {
             </div>
 
 
-            {/* Form */}
+            {/* Login Form */}
 
-            <form className="login-form">
+            <form
+              className="login-form"
+              onSubmit={handleLogin}
+            >
+
+
+              {/* Error */}
+
+              {error && (
+
+                <div
+                  style={{
+                    color: "#dc2626",
+                    fontSize: "13px",
+                    marginBottom: "14px",
+                    textAlign: "center",
+                    padding: "10px",
+                    backgroundColor: "#fef2f2",
+                    border: "1px solid #fecaca",
+                    borderRadius: "8px",
+                  }}
+                >
+                  {error}
+                </div>
+
+              )}
+
 
               {/* Email */}
 
@@ -300,6 +513,7 @@ function Login() {
                   Email address
                 </label>
 
+
                 <div className="input-wrapper">
 
                   <Mail
@@ -307,16 +521,22 @@ function Login() {
                     className="input-icon"
                   />
 
+
                   <input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     autoComplete="email"
+                    value={email}
+                    onChange={(e) =>
+                      setEmail(e.target.value)
+                    }
                   />
 
                 </div>
 
               </div>
+
 
 
               {/* Password */}
@@ -329,9 +549,10 @@ function Login() {
                     Password
                   </label>
 
-                  <a href="#">
+
+                  <Link to="/forgot-password">
                     Forgot password?
-                  </a>
+                  </Link>
 
                 </div>
 
@@ -343,11 +564,20 @@ function Login() {
                     className="input-icon"
                   />
 
+
                   <input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
                     placeholder="Enter your password"
                     autoComplete="current-password"
+                    value={password}
+                    onChange={(e) =>
+                      setPassword(e.target.value)
+                    }
                   />
 
 
@@ -355,7 +585,9 @@ function Login() {
                     type="button"
                     className="password-toggle"
                     onClick={() =>
-                      setShowPassword(!showPassword)
+                      setShowPassword(
+                        !showPassword
+                      )
                     }
                     aria-label={
                       showPassword
@@ -377,11 +609,18 @@ function Login() {
               </div>
 
 
-              {/* Remember */}
+
+              {/* Remember Me */}
 
               <label className="remember-option">
 
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) =>
+                    setRememberMe(e.target.checked)
+                  }
+                />
 
                 <span>
                   Remember me
@@ -390,29 +629,44 @@ function Login() {
               </label>
 
 
-              {/* Submit */}
+
+              {/* Sign In Button */}
 
               <button
                 type="submit"
                 className="login-button"
+                disabled={loading}
               >
 
                 <span>
-                  Sign in
+
+                  {loading
+                    ? "Signing in..."
+                    : "Sign in"}
+
                 </span>
 
-                <ArrowRight size={19} />
+
+                {!loading && (
+                  <ArrowRight size={19} />
+                )}
 
               </button>
 
             </form>
 
 
+
             {/* Divider */}
 
             <div className="login-divider">
-              <span>or</span>
+
+              <span>
+                or
+              </span>
+
             </div>
+
 
 
             {/* Security */}
@@ -426,6 +680,7 @@ function Login() {
               </span>
 
             </div>
+
 
 
             {/* Register */}
@@ -444,6 +699,8 @@ function Login() {
 
           </div>
 
+
+          {/* Footer */}
 
           <p className="login-footer">
             © 2026 SpendWise. All rights reserved.

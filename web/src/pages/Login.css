@@ -416,7 +416,7 @@
 
   border-radius:
     50% 45% 55% 35%;
-  
+
   transform:
     rotate(-4deg)
     skewX(-8deg);
@@ -765,12 +765,14 @@
 
 .input-wrapper {
   position: relative;
+
+  width: 100%;
 }
 
 .input-icon {
   position: absolute;
 
-  left: 13px;
+  left: 15px;
   top: 50%;
 
   transform: translateY(-50%);
@@ -778,6 +780,8 @@
   color: #94a3b8;
 
   pointer-events: none;
+
+  z-index: 2;
 }
 
 .input-wrapper input {
@@ -785,7 +789,14 @@
 
   box-sizing: border-box;
 
-  padding: 12px 42px;
+  /*
+    Left padding creates space after
+    the email/lock icon.
+    
+    Right padding creates space for
+    the password eye icon.
+  */
+  padding: 12px 48px 12px 48px;
 
   color: #172033;
 
@@ -798,6 +809,8 @@
   outline: none;
 
   font-size: 13px;
+
+  line-height: 1.4;
 
   transition:
     border-color 0.2s,
@@ -828,8 +841,8 @@
 
   transform: translateY(-50%);
 
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
 
   display: flex;
   align-items: center;
@@ -844,6 +857,8 @@
   border-radius: 7px;
 
   cursor: pointer;
+
+  z-index: 3;
 }
 
 .password-toggle:hover {
@@ -1216,4 +1231,55 @@
   .decorative-dots {
     display: none;
   }
+}
+
+/* =========================================================
+   FORCE INPUT TEXT TO START AFTER LEFT ICON
+========================================================= */
+
+.input-wrapper {
+  position: relative !important;
+  width: 100% !important;
+}
+
+
+/* LEFT EMAIL / LOCK ICON */
+
+.input-wrapper .input-icon {
+  position: absolute !important;
+
+  left: 16px !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  z-index: 10 !important;
+
+  pointer-events: none !important;
+}
+
+
+/* INPUT TEXT */
+
+.input-wrapper > input {
+  width: 100% !important;
+
+  box-sizing: border-box !important;
+
+  /* TOP RIGHT BOTTOM LEFT */
+  padding: 12px 52px 12px 52px !important;
+}
+
+
+/* PASSWORD EYE ICON */
+
+.input-wrapper .password-toggle {
+  position: absolute !important;
+
+  right: 10px !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  z-index: 20 !important;
 }
