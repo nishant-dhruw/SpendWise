@@ -21,7 +21,7 @@ import "./Transactions.css";
 
 interface Transaction {
 
-    id: number;
+    id: string;
 
     type:
         | "income"
@@ -46,11 +46,38 @@ interface Transaction {
 
 interface Account {
 
+    _id?: string;
+
     name: string;
 
     type: string;
 
     balance: number;
+
+}
+
+
+// =========================================================
+// BACKEND TRANSACTION INTERFACE
+// =========================================================
+
+interface BackendTransaction {
+
+    _id: string;
+
+    type:
+        | "income"
+        | "expense";
+
+    category: string;
+
+    description: string;
+
+    amount: number;
+
+    date: string;
+
+    account: string;
 
 }
 
@@ -62,34 +89,36 @@ interface Account {
 function Transactions() {
 
 
-    const [transactions, setTransactions] =
-        useState<Transaction[]>(() => {
+    // =====================================================
+    // STATE
+    // =====================================================
 
-            const savedTransactions =
-                localStorage.getItem(
-                    "spendwise_transactions"
-                );
-
-            return savedTransactions
-                ? JSON.parse(savedTransactions)
-                : [];
-
-        });
+    const [
+        transactions,
+        setTransactions,
+    ] =
+        useState<Transaction[]>([]);
 
 
-    const [accounts, setAccounts] =
-        useState<Account[]>(() => {
+    const [
+        accounts,
+        setAccounts,
+    ] =
+        useState<Account[]>([]);
 
-            const savedAccounts =
-                localStorage.getItem(
-                    "spendwise_accounts"
-                );
 
-            return savedAccounts
-                ? JSON.parse(savedAccounts)
-                : [];
+    const [
+        loading,
+        setLoading,
+    ] =
+        useState(true);
 
-        });
+
+    const [
+        error,
+        setError,
+    ] =
+        useState("");
 
 
     const [
@@ -99,23 +128,38 @@ function Transactions() {
         useState(false);
 
 
-    const [search, setSearch] =
+    const [
+        search,
+        setSearch,
+    ] =
         useState("");
 
 
-    const [typeFilter, setTypeFilter] =
+    const [
+        typeFilter,
+        setTypeFilter,
+    ] =
         useState("all");
 
 
-    const [categoryFilter, setCategoryFilter] =
+    const [
+        categoryFilter,
+        setCategoryFilter,
+    ] =
         useState("all");
 
 
-    const [dateFilter, setDateFilter] =
+    const [
+        dateFilter,
+        setDateFilter,
+    ] =
         useState("all");
 
 
-    const [sortOrder, setSortOrder] =
+    const [
+        sortOrder,
+        setSortOrder,
+    ] =
         useState<
             "newest"
             | "oldest"
@@ -143,168 +187,369 @@ function Transactions() {
 
 
     // =====================================================
-    // SAVE TRANSACTIONS
+    // GET TOKEN
     // =====================================================
 
-    useEffect(() => {
+    const getToken = () => {
 
-        localStorage.setItem(
-
-            "spendwise_transactions",
-
-            JSON.stringify(
-                transactions
-            )
-
-        );
-
-
-        window.dispatchEvent(
-
-            new Event(
-                "spendwise_transactions_updated"
-            )
-
-        );
-
-    }, [transactions]);
-
-
-    // =====================================================
-    // SAVE ACCOUNTS
-    // =====================================================
-
-    useEffect(() => {
-
-        localStorage.setItem(
-
-            "spendwise_accounts",
-
-            JSON.stringify(
-                accounts
-            )
-
-        );
-
-
-        window.dispatchEvent(
-
-            new Event(
-                "spendwise_accounts_updated"
-            )
-
-        );
-
-    }, [accounts]);
-
-
-    // =====================================================
-    // UPDATE ACCOUNT BALANCE
-    // =====================================================
-
-    const updateAccountBalance = (
-
-        currentAccounts: Account[],
-
-        transaction: Transaction,
-
-        action:
-            | "add"
-            | "remove"
-
-    ) => {
-
-        return currentAccounts.map(
-            (account) => {
-
-
-                if (
-                    account.name !==
-                    transaction.accountName
-                ) {
-
-                    return account;
-
-                }
-
-
-                let balanceChange =
-                    transaction.amount;
-
-
-                if (
-                    transaction.type ===
-                    "expense"
-                ) {
-
-                    balanceChange =
-                        -balanceChange;
-
-                }
-
-
-                if (
-                    action ===
-                    "remove"
-                ) {
-
-                    balanceChange =
-                        -balanceChange;
-
-                }
-
-
-                return {
-
-                    ...account,
-
-                    balance:
-
-                        account.balance +
-
-                        balanceChange,
-
-                };
-
-            }
+        return (
+            localStorage.getItem("token") ||
+            sessionStorage.getItem("token")
         );
 
     };
 
 
     // =====================================================
+    // FETCH ACCOUNTS + TRANSACTIONS
+    // =====================================================
+
+    const fetchData = async () => {
+
+        try {
+
+            setLoading(true);
+
+            setError("");
+
+
+            const token =
+                getToken();
+
+
+            if (!token) {
+
+                setError(
+                    "Authentication token not found. Please login again."
+                );
+
+                return;
+
+            }
+
+
+            // =================================================
+            // FETCH ACCOUNTS
+            // =================================================
+
+            const accountsResponse =
+                await fetch(
+                    "http://localhost:5000/api/accounts",
+                    {
+                        method: "GET",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+
+                            "Content-Type":
+                                "application/json",
+                        },
+                    }
+                );
+
+
+            const accountsData =
+                await accountsResponse.json();
+
+
+            if (!accountsResponse.ok) {
+
+                throw new Error(
+                    accountsData.message ||
+                    "Failed to fetch accounts."
+                );
+
+            }
+
+
+            const formattedAccounts:
+                Account[] =
+                accountsData.accounts.map(
+                    (account: Account) => ({
+
+                        ...account,
+
+                        type:
+                            account.type.toLowerCase(),
+
+                    })
+                );
+
+
+            setAccounts(
+                formattedAccounts
+            );
+
+
+            // =================================================
+            // FETCH TRANSACTIONS
+            // =================================================
+
+            const transactionsResponse =
+                await fetch(
+                    "http://localhost:5000/api/transactions",
+                    {
+                        method: "GET",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+
+                            "Content-Type":
+                                "application/json",
+                        },
+                    }
+                );
+
+
+            const transactionsData =
+                await transactionsResponse.json();
+
+
+            if (!transactionsResponse.ok) {
+
+                throw new Error(
+                    transactionsData.message ||
+                    "Failed to fetch transactions."
+                );
+
+            }
+
+
+            // =================================================
+            // CONVERT BACKEND TRANSACTIONS
+            // TO FRONTEND TRANSACTIONS
+            // =================================================
+
+            const formattedTransactions:
+                Transaction[] =
+
+                transactionsData.transactions.map(
+                    (
+                        transaction:
+                            BackendTransaction
+                    ) => {
+
+                        const account =
+                            formattedAccounts.find(
+                                (
+                                    currentAccount
+                                ) =>
+                                    currentAccount._id ===
+                                    transaction.account
+                            );
+
+
+                        return {
+
+                            id:
+                                transaction._id,
+
+                            type:
+                                transaction.type,
+
+                            category:
+                                transaction.category,
+
+                            description:
+                                transaction.description,
+
+                            amount:
+                                Number(
+                                    transaction.amount
+                                ),
+
+                            date:
+                                transaction.date.split("T")[0],
+
+                            accountName:
+                                account?.name ||
+                                "Unknown Account",
+
+                        };
+
+                    }
+                );
+
+
+            setTransactions(
+                formattedTransactions
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Error loading transactions:",
+                error
+            );
+
+
+            if (
+                error instanceof Error
+            ) {
+
+                setError(
+                    error.message
+                );
+
+            }
+
+            else {
+
+                setError(
+                    "Unable to load transactions."
+                );
+
+            }
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+
+    // =====================================================
+    // INITIAL LOAD
+    // =====================================================
+
+    useEffect(() => {
+
+        fetchData();
+
+    }, []);
+
+
+    // =====================================================
     // ADD TRANSACTION
     // =====================================================
 
-    const handleAddTransaction = (
+    const handleAddTransaction = async (
         newTransaction: Transaction
-    ) => {
+    ): Promise<void> => {
 
 
-        setTransactions(
-            (currentTransactions) => [
+        const token =
+            getToken();
 
-                newTransaction,
 
-                ...currentTransactions,
+        if (!token) {
 
-            ]
+            throw new Error(
+                "Authentication token not found."
+            );
+
+        }
+
+
+        // =================================================
+        // FIND ACCOUNT
+        // =================================================
+
+        const selectedAccount =
+            accounts.find(
+                (account) =>
+                    account.name ===
+                    newTransaction.accountName
+            );
+
+
+        if (
+            !selectedAccount ||
+            !selectedAccount._id
+        ) {
+
+            throw new Error(
+                "Selected account was not found."
+            );
+
+        }
+
+
+        // =================================================
+        // REQUEST BODY
+        // =================================================
+
+        const requestBody = {
+
+            type:
+                newTransaction.type,
+
+            amount:
+                Number(
+                    newTransaction.amount
+                ),
+
+            category:
+                newTransaction.category,
+
+            description:
+                newTransaction.description,
+
+            date:
+                newTransaction.date,
+
+            account:
+                selectedAccount._id,
+
+        };
+
+
+        // =================================================
+        // POST TO BACKEND
+        // =================================================
+
+        const response =
+            await fetch(
+                "http://localhost:5000/api/transactions",
+                {
+                    method: "POST",
+
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body:
+                        JSON.stringify(
+                            requestBody
+                        ),
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Failed to add transaction."
+            );
+
+        }
+
+
+        console.log(
+            "Transaction added successfully:",
+            data
         );
 
 
-        setAccounts(
-            (currentAccounts) =>
+        // =================================================
+        // REFRESH FROM DATABASE
+        // =================================================
 
-                updateAccountBalance(
-
-                    currentAccounts,
-
-                    newTransaction,
-
-                    "add"
-
-                )
-        );
+        await fetchData();
 
 
         setShowAddTransaction(
@@ -318,60 +563,147 @@ function Transactions() {
     // EDIT TRANSACTION
     // =====================================================
 
-    const handleEditTransaction = (
+    const handleEditTransaction = async (
 
         oldTransaction: Transaction,
 
         updatedTransaction: Transaction
 
-    ) => {
+    ): Promise<void> => {
 
 
-        setTransactions(
-            (currentTransactions) =>
+        const token =
+            getToken();
 
-                currentTransactions.map(
-                    (transaction) =>
 
-                        transaction.id ===
-                        updatedTransaction.id
+        if (!token) {
 
-                            ? updatedTransaction
+            throw new Error(
+                "Authentication token not found."
+            );
 
-                            : transaction
-                )
+        }
+
+
+        if (!oldTransaction.id) {
+
+            throw new Error(
+                "Transaction ID not found."
+            );
+
+        }
+
+
+        // =================================================
+        // FIND NEW ACCOUNT
+        // =================================================
+
+        const selectedAccount =
+            accounts.find(
+                (account) =>
+                    account.name ===
+                    updatedTransaction.accountName
+            );
+
+
+        if (
+            !selectedAccount ||
+            !selectedAccount._id
+        ) {
+
+            throw new Error(
+                "Selected account was not found."
+            );
+
+        }
+
+
+        // =================================================
+        // REQUEST BODY
+        // =================================================
+
+        const requestBody = {
+
+            type:
+                updatedTransaction.type,
+
+            amount:
+                Number(
+                    updatedTransaction.amount
+                ),
+
+            category:
+                updatedTransaction.category,
+
+            description:
+                updatedTransaction.description,
+
+            date:
+                updatedTransaction.date,
+
+            account:
+                selectedAccount._id,
+
+        };
+
+
+        console.log(
+            "Updating transaction:",
+            requestBody
         );
 
 
-        setAccounts(
-            (currentAccounts) => {
+        // =================================================
+        // PUT TO BACKEND
+        // =================================================
+
+        const response =
+            await fetch(
+                `http://localhost:5000/api/transactions/${oldTransaction.id}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body:
+                        JSON.stringify(
+                            requestBody
+                        ),
+                }
+            );
 
 
-                const accountsWithoutOldEffect =
-
-                    updateAccountBalance(
-
-                        currentAccounts,
-
-                        oldTransaction,
-
-                        "remove"
-
-                    );
+        const data =
+            await response.json();
 
 
-                return updateAccountBalance(
+        if (!response.ok) {
 
-                    accountsWithoutOldEffect,
+            throw new Error(
+                data.message ||
+                "Failed to update transaction."
+            );
 
-                    updatedTransaction,
+        }
 
-                    "add"
 
-                );
-
-            }
+        console.log(
+            "Transaction updated successfully:",
+            data
         );
+
+
+        // =================================================
+        // REFRESH DATABASE DATA
+        // =================================================
+
+        await fetchData();
 
 
         setTransactionToEdit(
@@ -385,36 +717,81 @@ function Transactions() {
     // DELETE TRANSACTION
     // =====================================================
 
-    const handleDeleteTransaction = (
+    const handleDeleteTransaction = async (
+
         transaction: Transaction
-    ) => {
+
+    ): Promise<void> => {
 
 
-        setTransactions(
-            (currentTransactions) =>
+        const token =
+            getToken();
 
-                currentTransactions.filter(
-                    (currentTransaction) =>
 
-                        currentTransaction.id !==
-                        transaction.id
-                )
+        if (!token) {
+
+            throw new Error(
+                "Authentication token not found."
+            );
+
+        }
+
+
+        if (!transaction.id) {
+
+            throw new Error(
+                "Transaction ID not found."
+            );
+
+        }
+
+
+        // =================================================
+        // DELETE FROM BACKEND
+        // =================================================
+
+        const response =
+            await fetch(
+                `http://localhost:5000/api/transactions/${transaction.id}`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+                            "application/json",
+                    },
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Failed to delete transaction."
+            );
+
+        }
+
+
+        console.log(
+            "Transaction deleted successfully:",
+            data
         );
 
 
-        setAccounts(
-            (currentAccounts) =>
+        // =================================================
+        // REFRESH DATABASE DATA
+        // =================================================
 
-                updateAccountBalance(
-
-                    currentAccounts,
-
-                    transaction,
-
-                    "remove"
-
-                )
-        );
+        await fetchData();
 
 
         setTransactionToDelete(
@@ -457,8 +834,7 @@ function Transactions() {
 
                 const matchesType =
 
-                    typeFilter ===
-                    "all"
+                    typeFilter === "all"
 
                     ||
 
@@ -468,8 +844,7 @@ function Transactions() {
 
                 const matchesCategory =
 
-                    categoryFilter ===
-                    "all"
+                    categoryFilter === "all"
 
                     ||
 
@@ -479,7 +854,7 @@ function Transactions() {
 
                 const transactionDate =
                     new Date(
-                        transaction.date
+                        `${transaction.date}T00:00:00`
                     );
 
 
@@ -504,8 +879,7 @@ function Transactions() {
 
 
                         if (
-                            dateFilter ===
-                            "all"
+                            dateFilter === "all"
                         ) {
 
                             return true;
@@ -514,33 +888,23 @@ function Transactions() {
 
 
                         if (
-                            dateFilter ===
-                            "today"
+                            dateFilter === "today"
                         ) {
 
                             return (
 
-                                transactionDate
-                                    .getFullYear() ===
-
-                                todayDate
-                                    .getFullYear()
+                                transactionDate.getFullYear() ===
+                                todayDate.getFullYear()
 
                                 &&
 
-                                transactionDate
-                                    .getMonth() ===
-
-                                todayDate
-                                    .getMonth()
+                                transactionDate.getMonth() ===
+                                todayDate.getMonth()
 
                                 &&
 
-                                transactionDate
-                                    .getDate() ===
-
-                                todayDate
-                                    .getDate()
+                                transactionDate.getDate() ===
+                                todayDate.getDate()
 
                             );
 
@@ -548,8 +912,7 @@ function Transactions() {
 
 
                         if (
-                            dateFilter ===
-                            "week"
+                            dateFilter === "week"
                         ) {
 
                             const startOfWeek =
@@ -565,7 +928,6 @@ function Transactions() {
                             startOfWeek.setDate(
 
                                 startOfWeek.getDate()
-
                                 - day
 
                             );
@@ -580,7 +942,6 @@ function Transactions() {
                             endOfWeek.setDate(
 
                                 endOfWeek.getDate()
-
                                 + 6
 
                             );
@@ -589,11 +950,8 @@ function Transactions() {
                             endOfWeek.setHours(
 
                                 23,
-
                                 59,
-
                                 59,
-
                                 999
 
                             );
@@ -615,25 +973,18 @@ function Transactions() {
 
 
                         if (
-                            dateFilter ===
-                            "month"
+                            dateFilter === "month"
                         ) {
 
                             return (
 
-                                transactionDate
-                                    .getFullYear() ===
-
-                                todayDate
-                                    .getFullYear()
+                                transactionDate.getFullYear() ===
+                                todayDate.getFullYear()
 
                                 &&
 
-                                transactionDate
-                                    .getMonth() ===
-
-                                todayDate
-                                    .getMonth()
+                                transactionDate.getMonth() ===
+                                todayDate.getMonth()
 
                             );
 
@@ -641,19 +992,15 @@ function Transactions() {
 
 
                         if (
-                            dateFilter ===
-                            "lastMonth"
+                            dateFilter === "lastMonth"
                         ) {
 
                             const lastMonth =
                                 new Date(
 
-                                    todayDate
-                                        .getFullYear(),
+                                    todayDate.getFullYear(),
 
-                                    todayDate
-                                        .getMonth()
-                                        - 1,
+                                    todayDate.getMonth() - 1,
 
                                     1
 
@@ -662,19 +1009,13 @@ function Transactions() {
 
                             return (
 
-                                transactionDate
-                                    .getFullYear() ===
-
-                                lastMonth
-                                    .getFullYear()
+                                transactionDate.getFullYear() ===
+                                lastMonth.getFullYear()
 
                                 &&
 
-                                transactionDate
-                                    .getMonth() ===
-
-                                lastMonth
-                                    .getMonth()
+                                transactionDate.getMonth() ===
+                                lastMonth.getMonth()
 
                             );
 
@@ -720,18 +1061,17 @@ function Transactions() {
 
                 const dateA =
                     new Date(
-                        a.date
+                        `${a.date}T00:00:00`
                     ).getTime();
 
 
                 const dateB =
                     new Date(
-                        b.date
+                        `${b.date}T00:00:00`
                     ).getTime();
 
 
-                return sortOrder ===
-                    "newest"
+                return sortOrder === "newest"
 
                     ? dateB - dateA
 
@@ -751,23 +1091,19 @@ function Transactions() {
 
             .filter(
                 (transaction) =>
-
                     transaction.type ===
                     "income"
             )
 
             .reduce(
-
                 (
                     total,
                     transaction
                 ) =>
-
                     total +
                     transaction.amount,
 
                 0
-
             );
 
 
@@ -777,23 +1113,19 @@ function Transactions() {
 
             .filter(
                 (transaction) =>
-
                     transaction.type ===
                     "expense"
             )
 
             .reduce(
-
                 (
                     total,
                     transaction
                 ) =>
-
                     total +
                     transaction.amount,
 
                 0
-
             );
 
 
@@ -815,33 +1147,41 @@ function Transactions() {
             return "🍔";
         }
 
+
         if (category === "transport") {
             return "🚕";
         }
+
 
         if (category === "shopping") {
             return "🛍️";
         }
 
+
         if (category === "salary") {
             return "💼";
         }
+
 
         if (category === "bills") {
             return "💡";
         }
 
+
         if (category === "entertainment") {
             return "🎮";
         }
+
 
         if (category === "health") {
             return "🏥";
         }
 
+
         if (category === "freelance") {
             return "💻";
         }
+
 
         return "💰";
 
@@ -862,7 +1202,9 @@ function Transactions() {
             <section className="transactions-main">
 
 
-                {/* HEADER */}
+                {/* =================================================
+                    HEADER
+                ================================================= */}
 
                 <div className="transactions-page-header">
 
@@ -901,7 +1243,33 @@ function Transactions() {
                 </div>
 
 
-                {/* SUMMARY */}
+                {/* =================================================
+                    ERROR
+                ================================================= */}
+
+                {error && (
+
+                    <div
+                        style={{
+                            color: "#dc2626",
+                            backgroundColor: "#fef2f2",
+                            border: "1px solid #fecaca",
+                            padding: "12px 16px",
+                            borderRadius: "10px",
+                            marginBottom: "20px",
+                        }}
+                    >
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {/* =================================================
+                    SUMMARY
+                ================================================= */}
 
                 <section className="transactions-summary">
 
@@ -965,9 +1333,7 @@ function Transactions() {
 
                             className={
                                 netAmount >= 0
-
                                     ? "summary-income"
-
                                     : "summary-expense"
                             }
 
@@ -987,12 +1353,16 @@ function Transactions() {
                 </section>
 
 
-                {/* TRANSACTIONS */}
+                {/* =================================================
+                    TRANSACTIONS CARD
+                ================================================= */}
 
                 <section className="transactions-page-card">
 
 
-                    {/* FILTERS */}
+                    {/* =================================================
+                        FILTERS
+                    ================================================= */}
 
                     <div className="transactions-filters">
 
@@ -1020,7 +1390,7 @@ function Transactions() {
                         </div>
 
 
-                        {/* TYPE FILTER */}
+                        {/* TYPE */}
 
                         <select
 
@@ -1049,7 +1419,7 @@ function Transactions() {
                         </select>
 
 
-                        {/* CATEGORY FILTER */}
+                        {/* CATEGORY */}
 
                         <select
 
@@ -1106,7 +1476,7 @@ function Transactions() {
                         </select>
 
 
-                        {/* DATE FILTER */}
+                        {/* DATE */}
 
                         <select
 
@@ -1153,7 +1523,6 @@ function Transactions() {
                                 setSortOrder(
 
                                     event.target.value as
-
                                         | "newest"
                                         | "oldest"
 
@@ -1176,47 +1545,77 @@ function Transactions() {
                     </div>
 
 
-                    {/* TRANSACTION LIST */}
+                    {/* =================================================
+                        LOADING
+                    ================================================= */}
 
-                    <div className="transactions-page-list">
+                    {loading ? (
 
+                        <div className="transactions-empty">
 
-                        {filteredTransactions.length === 0 ? (
-
-                            <div className="transactions-empty">
-
-                                <div>
-                                    💸
-                                </div>
-
-
-                                <h3>
-                                    No transactions found
-                                </h3>
-
-
-                                <p>
-                                    Try changing your filters
-                                    or add a new transaction.
-                                </p>
-
+                            <div>
+                                ⏳
                             </div>
 
-                        ) : (
+                            <h3>
+                                Loading transactions...
+                            </h3>
 
-                            sortedTransactions.map(
+                            <p>
+                                Fetching your latest financial activity.
+                            </p>
+
+                        </div>
+
+                    ) : filteredTransactions.length === 0 ? (
+
+                        /* =================================================
+                           EMPTY
+                        ================================================= */
+
+                        <div className="transactions-empty">
+
+                            <div>
+                                💸
+                            </div>
+
+
+                            <h3>
+                                No transactions found
+                            </h3>
+
+
+                            <p>
+                                Try changing your filters
+                                or add a new transaction.
+                            </p>
+
+                        </div>
+
+                    ) : (
+
+                        /* =================================================
+                           TRANSACTION LIST
+                        ================================================= */
+
+                        <div className="transactions-page-list">
+
+
+                            {sortedTransactions.map(
                                 (transaction) => (
 
                                     <div
 
                                         className="transactions-page-row"
 
-                                        key={transaction.id}
+                                        key={
+                                            transaction.id
+                                        }
 
                                     >
 
 
-                                        {/* LEFT SIDE */}
+                                        {/* LEFT */}
 
                                         <div className="transactions-page-left">
 
@@ -1270,7 +1669,7 @@ function Transactions() {
                                         </div>
 
 
-                                        {/* RIGHT SIDE */}
+                                        {/* RIGHT */}
 
                                         <div className="transactions-page-right">
 
@@ -1291,19 +1690,13 @@ function Transactions() {
                                             >
 
                                                 {
-
                                                     transaction.type ===
                                                     "income"
-
                                                         ? "+"
-
                                                         : "-"
-
                                                 }
 
-                                                {" "}
-
-                                                ₹
+                                                {" "}₹
 
                                                 {transaction.amount.toLocaleString(
                                                     "en-IN"
@@ -1320,11 +1713,11 @@ function Transactions() {
 
                                                 onClick={() =>
                                                     setTransactionToEdit(
-                                                        {
-                                                            ...transaction,
-                                                        }
+                                                        transaction
                                                     )
                                                 }
+
+                                                title="Edit transaction"
 
                                             >
 
@@ -1345,6 +1738,8 @@ function Transactions() {
                                                     )
                                                 }
 
+                                                title="Delete transaction"
+
                                             >
 
                                                 <Trash2 size={15} />
@@ -1358,12 +1753,12 @@ function Transactions() {
                                     </div>
 
                                 )
-                            )
-
-                        )}
+                            )}
 
 
-                    </div>
+                        </div>
+
+                    )}
 
 
                 </section>
@@ -1435,7 +1830,7 @@ function Transactions() {
 
 
             {/* =================================================
-                DELETE MODAL
+                DELETE CONFIRMATION
             ================================================= */}
 
             {transactionToDelete && (
@@ -1493,9 +1888,25 @@ function Transactions() {
                             </strong>
 
 
-                            <span>
+                            <span
 
-                                ₹
+                                className={
+                                    transactionToDelete.type ===
+                                    "income"
+                                        ? "transaction-income"
+                                        : "transaction-expense"
+                                }
+
+                            >
+
+                                {
+                                    transactionToDelete.type ===
+                                    "income"
+                                        ? "+"
+                                        : "-"
+                                }
+
+                                {" "}₹
 
                                 {transactionToDelete.amount.toLocaleString(
                                     "en-IN"
@@ -1508,8 +1919,7 @@ function Transactions() {
 
                         <p className="delete-confirm-note">
 
-                            This will update
-                            the balance of{" "}
+                            This will update the balance of{" "}
 
                             <strong>
 
@@ -1546,11 +1956,34 @@ function Transactions() {
 
                                 className="delete-confirm-button"
 
-                                onClick={() =>
-                                    handleDeleteTransaction(
-                                        transactionToDelete
-                                    )
-                                }
+                                onClick={async () => {
+
+                                    try {
+
+                                        await handleDeleteTransaction(
+                                            transactionToDelete
+                                        );
+
+                                    } catch (error) {
+
+                                        console.error(
+                                            "Delete transaction error:",
+                                            error
+                                        );
+
+                                        if (
+                                            error instanceof Error
+                                        ) {
+
+                                            setError(
+                                                error.message
+                                            );
+
+                                        }
+
+                                    }
+
+                                }}
 
                             >
 
@@ -1568,7 +2001,6 @@ function Transactions() {
                 </div>
 
             )}
-
 
         </main>
 

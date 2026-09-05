@@ -17,8 +17,7 @@ import { useNavigate } from "react-router-dom";
 // =========================================================
 
 interface Transaction {
-
-  id: number;
+  id: string;
 
   type:
     | "income"
@@ -33,7 +32,6 @@ interface Transaction {
   date: string;
 
   accountName: string;
-
 }
 
 
@@ -42,13 +40,13 @@ interface Transaction {
 // =========================================================
 
 interface Account {
+  _id?: string;
 
   name: string;
 
   type: string;
 
   balance: number;
-
 }
 
 
@@ -66,7 +64,6 @@ interface RecentTransactionsProps {
   onDeleteTransaction:
     (transaction: Transaction) => void;
 
-
   onEditTransaction: (
 
     oldTransaction: Transaction,
@@ -74,7 +71,6 @@ interface RecentTransactionsProps {
     updatedTransaction: Transaction
 
   ) => void;
-
 
   accounts: Account[];
 
@@ -362,13 +358,13 @@ function RecentTransactions({
             (a, b) =>
 
               new Date(
-                b.date
+                `${b.date}T00:00:00`
               ).getTime()
 
               -
 
               new Date(
-                a.date
+                `${a.date}T00:00:00`
               ).getTime()
 
           )
@@ -714,16 +710,13 @@ function RecentTransactions({
 
                 onClick={() => {
 
-
                   onDeleteTransaction(
                     transactionToDelete
                   );
 
-
                   setTransactionToDelete(
                     null
                   );
-
 
                 }}
 

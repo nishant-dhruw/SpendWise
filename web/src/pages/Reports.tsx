@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   TrendingUp,
@@ -16,10 +16,16 @@ import Sidebar from "../components/Sidebar";
 import "./Reports.css";
 
 
-interface Transaction {
-  id: number;
+// =========================================================
+// TRANSACTION INTERFACE
+// =========================================================
 
-  type: "income" | "expense";
+interface Transaction {
+  _id: string;
+
+  type:
+    | "income"
+    | "expense";
 
   category: string;
 
@@ -29,46 +35,172 @@ interface Transaction {
 
   date: string;
 
-  accountName: string;
+  account: string;
 }
 
 
+// =========================================================
+// COMPONENT
+// =========================================================
+
 function Reports() {
 
-  // =========================================================
+  // =======================================================
   // NAVIGATION
-  // =========================================================
+  // =======================================================
 
   const navigate =
     useNavigate();
 
 
-  // =========================================================
-  // TRANSACTIONS
-  // =========================================================
+  // =======================================================
+  // TRANSACTIONS STATE
+  // =======================================================
 
-  const [transactions] =
-    useState<Transaction[]>(
-      () => {
+  const [
+    transactions,
+    setTransactions,
+  ] = useState<Transaction[]>([]);
 
-        const savedTransactions =
-          localStorage.getItem(
-            "spendwise_transactions"
-          );
 
-        return savedTransactions
-          ? JSON.parse(
-              savedTransactions
-            )
-          : [];
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-      }
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  // =======================================================
+  // GET TOKEN
+  // =======================================================
+
+  const getToken = () => {
+
+    return (
+      localStorage.getItem("token") ||
+      sessionStorage.getItem("token")
     );
 
+  };
 
-  // =========================================================
+
+  // =======================================================
+  // FETCH TRANSACTIONS
+  // =======================================================
+
+  useEffect(() => {
+
+    const fetchTransactions =
+      async () => {
+
+        try {
+
+          setLoading(true);
+
+          setError("");
+
+
+          const token =
+            getToken();
+
+
+          if (!token) {
+
+            navigate(
+              "/login",
+              {
+                replace: true,
+              }
+            );
+
+            return;
+
+          }
+
+
+          const response =
+            await fetch(
+              "http://localhost:5000/api/transactions",
+              {
+                method: "GET",
+
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`,
+
+                  "Content-Type":
+                    "application/json",
+                },
+              }
+            );
+
+
+          const data =
+            await response.json();
+
+
+          if (!response.ok) {
+
+            throw new Error(
+              data.message ||
+              "Failed to fetch transactions."
+            );
+
+          }
+
+
+          setTransactions(
+            data.transactions || []
+          );
+
+
+        } catch (err) {
+
+          console.error(
+            "Error fetching reports:",
+            err
+          );
+
+
+          if (
+            err instanceof Error
+          ) {
+
+            setError(
+              err.message
+            );
+
+          } else {
+
+            setError(
+              "Unable to load reports."
+            );
+
+          }
+
+
+        } finally {
+
+          setLoading(false);
+
+        }
+
+      };
+
+
+    fetchTransactions();
+
+  }, [navigate]);
+
+
+  // =======================================================
   // TOTAL INCOME
-  // =========================================================
+  // =======================================================
 
   const totalIncome =
     transactions
@@ -78,16 +210,21 @@ function Reports() {
           "income"
       )
       .reduce(
-        (total, transaction) =>
+        (
+          total,
+          transaction
+        ) =>
           total +
-          transaction.amount,
+          Number(
+            transaction.amount
+          ),
         0
       );
 
 
-  // =========================================================
+  // =======================================================
   // TOTAL EXPENSES
-  // =========================================================
+  // =======================================================
 
   const totalExpenses =
     transactions
@@ -97,33 +234,38 @@ function Reports() {
           "expense"
       )
       .reduce(
-        (total, transaction) =>
+        (
+          total,
+          transaction
+        ) =>
           total +
-          transaction.amount,
+          Number(
+            transaction.amount
+          ),
         0
       );
 
 
-  // =========================================================
+  // =======================================================
   // NET SAVINGS
-  // =========================================================
+  // =======================================================
 
   const netSavings =
     totalIncome -
     totalExpenses;
 
 
-  // =========================================================
+  // =======================================================
   // TOTAL TRANSACTIONS
-  // =========================================================
+  // =======================================================
 
   const totalTransactions =
     transactions.length;
 
 
-  // =========================================================
+  // =======================================================
   // SPENDING BY CATEGORY
-  // =========================================================
+  // =======================================================
 
   const categorySpending =
     transactions
@@ -140,19 +282,18 @@ function Reports() {
         ) => {
 
           const category =
-            transaction.category ||
+            transaction.category?.trim() ||
             "Other";
 
 
-          categories[
-            category
-          ] =
+          categories[category] =
             (
-              categories[
-                category
-              ] || 0
+              categories[category] ||
+              0
             ) +
-            transaction.amount;
+            Number(
+              transaction.amount
+            );
 
 
           return categories;
@@ -162,6 +303,10 @@ function Reports() {
       );
 
 
+  // =======================================================
+  // CATEGORY REPORT
+  // =======================================================
+
   const categoryReport =
     Object.entries(
       categorySpending
@@ -170,7 +315,7 @@ function Reports() {
         (
           [
             category,
-            amount
+            amount,
           ]
         ) => ({
 
@@ -184,27 +329,34 @@ function Reports() {
                   (
                     amount /
                     totalExpenses
-                  ) * 100
+                  ) *
+                  100
                 )
               : 0,
 
         })
       )
       .sort(
-        (a, b) =>
+        (
+          a,
+          b
+        ) =>
           b.amount -
           a.amount
       );
 
 
-  // =========================================================
-  // YEARLY REPORTS
-  // =========================================================
+  // =======================================================
+  // CURRENT YEAR
+  // =======================================================
 
   const currentYear =
-    new Date()
-      .getFullYear();
+    new Date().getFullYear();
 
+
+  // =======================================================
+  // YEARLY REPORTS
+  // =======================================================
 
   const yearlyReports =
     transactions.reduce(
@@ -217,23 +369,19 @@ function Reports() {
               transactionCount: number;
             }
           >,
+
         transaction
       ) => {
 
-        const date =
+        const transactionDate =
           new Date(
-            transaction.date
+            `${transaction.date.split("T")[0]}T00:00:00`
           );
 
 
-        const year =
-          date.getFullYear();
-
-
-        // Ignore invalid dates
         if (
           Number.isNaN(
-            year
+            transactionDate.getTime()
           )
         ) {
 
@@ -242,7 +390,14 @@ function Reports() {
         }
 
 
-        // Create year if it does not exist
+        const year =
+          transactionDate.getFullYear();
+
+
+        // ===============================================
+        // CREATE YEAR
+        // ===============================================
+
         if (
           !years[year]
         ) {
@@ -258,23 +413,28 @@ function Reports() {
         }
 
 
-        // Count all transactions
-        years[
-          year
-        ].transactionCount +=
-          1;
+        // ===============================================
+        // COUNT TRANSACTION
+        // ===============================================
+
+        years[year]
+          .transactionCount += 1;
 
 
-        // Add only expenses
+        // ===============================================
+        // ADD EXPENSE
+        // ===============================================
+
         if (
           transaction.type ===
           "expense"
         ) {
 
-          years[
-            year
-          ].totalExpenses +=
-            transaction.amount;
+          years[year]
+            .totalExpenses +=
+              Number(
+                transaction.amount
+              );
 
         }
 
@@ -286,19 +446,15 @@ function Reports() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // ALWAYS SHOW CURRENT YEAR
-  // =========================================================
+  // =======================================================
 
   if (
-    !yearlyReports[
-      currentYear
-    ]
+    !yearlyReports[currentYear]
   ) {
 
-    yearlyReports[
-      currentYear
-    ] = {
+    yearlyReports[currentYear] = {
 
       totalExpenses: 0,
 
@@ -309,9 +465,9 @@ function Reports() {
   }
 
 
-  // =========================================================
-  // CONVERT YEAR DATA TO ARRAY
-  // =========================================================
+  // =======================================================
+  // YEAR REPORT LIST
+  // =======================================================
 
   const yearReportList =
     Object.entries(
@@ -321,14 +477,12 @@ function Reports() {
         (
           [
             year,
-            data
+            data,
           ]
         ) => ({
 
           year:
-            Number(
-              year
-            ),
+            Number(year),
 
           totalExpenses:
             data.totalExpenses,
@@ -339,15 +493,18 @@ function Reports() {
         })
       )
       .sort(
-        (a, b) =>
+        (
+          a,
+          b
+        ) =>
           b.year -
           a.year
       );
 
 
-  // =========================================================
+  // =======================================================
   // RENDER
-  // =========================================================
+  // =======================================================
 
   return (
 
@@ -362,10 +519,9 @@ function Reports() {
         className="reports-main"
       >
 
-
-        {/* ===============================================
+        {/* =================================================
             HEADER
-        =============================================== */}
+        ================================================= */}
 
         <div
           className="reports-header"
@@ -389,491 +545,535 @@ function Reports() {
         </div>
 
 
-        {/* ===============================================
-            SUMMARY CARDS
-        =============================================== */}
-
-        <section
-          className="reports-summary"
-        >
-
-
-          {/* TOTAL INCOME */}
-
-          <article
-            className="report-summary-card"
-          >
-
-            <div
-              className="
-                report-summary-icon
-                income
-              "
-            >
-
-              <TrendingUp
-                size={20}
-              />
-
-            </div>
-
-
-            <span>
-              Total Income
-            </span>
-
-
-            <strong>
-
-              ₹
-              {totalIncome.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-
-            <small>
-              Money earned
-            </small>
-
-          </article>
-
-
-          {/* TOTAL EXPENSES */}
-
-          <article
-            className="report-summary-card"
-          >
-
-            <div
-              className="
-                report-summary-icon
-                expense
-              "
-            >
-
-              <TrendingDown
-                size={20}
-              />
-
-            </div>
-
-
-            <span>
-              Total Expenses
-            </span>
-
-
-            <strong>
-
-              ₹
-              {totalExpenses.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-
-            <small>
-              Money spent
-            </small>
-
-          </article>
-
-
-          {/* NET SAVINGS */}
-
-          <article
-            className="report-summary-card"
-          >
-
-            <div
-              className="
-                report-summary-icon
-                savings
-              "
-            >
-
-              <Wallet
-                size={20}
-              />
-
-            </div>
-
-
-            <span>
-              Net Savings
-            </span>
-
-
-            <strong
-              className={
-                netSavings >= 0
-                  ? "report-positive"
-                  : "report-negative"
-              }
-            >
-
-              ₹
-              {netSavings.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-
-            <small>
-              Income minus expenses
-            </small>
-
-          </article>
-
-
-          {/* TOTAL TRANSACTIONS */}
-
-          <article
-            className="report-summary-card"
-          >
-
-            <div
-              className="
-                report-summary-icon
-                transactions
-              "
-            >
-
-              <BarChart3
-                size={20}
-              />
-
-            </div>
-
-
-            <span>
-              Total Transactions
-            </span>
-
-
-            <strong>
-
-              {totalTransactions}
-
-            </strong>
-
-
-            <small>
-              Recorded transactions
-            </small>
-
-          </article>
-
-        </section>
-
-
-        {/* ===============================================
-            SPENDING BY CATEGORY
-        =============================================== */}
-
-        <section
-          className="reports-category-section"
-        >
+        {/* =================================================
+            ERROR
+        ================================================= */}
+
+        {error && (
 
           <div
-            className="reports-section-header"
+            style={{
+              color: "#dc2626",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+              padding: "12px 16px",
+              borderRadius: "10px",
+              marginBottom: "20px",
+            }}
           >
 
-            <div>
-
-              <h2>
-                Spending by Category
-              </h2>
-
-
-              <p>
-                See where most of your
-                money goes
-              </p>
-
-            </div>
+            {error}
 
           </div>
 
-
-          {categoryReport.length === 0 ? (
-
-            <div
-              className="reports-empty-state"
-            >
-
-              <h3>
-                No expense data yet
-              </h3>
+        )}
 
 
-              <p>
-                Add expense transactions
-                to see your spending
-                by category.
-              </p>
+        {/* =================================================
+            LOADING
+        ================================================= */}
 
-            </div>
-
-          ) : (
-
-            <div
-              className="category-report-list"
-            >
-
-              {categoryReport.map(
-                (item) => (
-
-                  <div
-                    className="
-                      category-report-item
-                    "
-                    key={
-                      item.category
-                    }
-                  >
-
-                    <div
-                      className="
-                        category-report-top
-                      "
-                    >
-
-                      <div
-                        className="
-                          category-report-name
-                        "
-                      >
-
-                        {item.category}
-
-                      </div>
-
-
-                      <div
-                        className="
-                          category-report-values
-                        "
-                      >
-
-                        <strong>
-
-                          ₹
-                          {item.amount.toLocaleString(
-                            "en-IN"
-                          )}
-
-                        </strong>
-
-
-                        <span>
-
-                          {item.percentage}%
-
-                        </span>
-
-                      </div>
-
-                    </div>
-
-
-                    <div
-                      className="
-                        category-progress-track
-                      "
-                    >
-
-                      <div
-                        className="
-                          category-progress-fill
-                        "
-                        style={{
-                          width:
-                            `${item.percentage}%`,
-                        }}
-                      />
-
-                    </div>
-
-                  </div>
-
-                )
-              )}
-
-            </div>
-
-          )}
-
-        </section>
-
-
-        {/* ===============================================
-            MONTHLY REPORTS BY YEAR
-        =============================================== */}
-
-        <section
-          className="reports-years-section"
-        >
+        {loading ? (
 
           <div
-            className="reports-section-header"
+            className="reports-empty-state"
           >
 
-            <div>
+            <h3>
+              Loading reports...
+            </h3>
 
-              <h2>
-                Monthly Reports
-              </h2>
-
-
-              <p>
-                Select a year to view
-                month-by-month spending
-                from January to December.
-              </p>
-
-            </div>
+            <p>
+              Fetching your latest
+              transaction data.
+            </p>
 
           </div>
 
+        ) : (
 
-          <div
-            className="year-report-grid"
-          >
+          <>
 
-            {yearReportList.map(
-              (item) => (
+            {/* =============================================
+                SUMMARY CARDS
+            ============================================= */}
 
-                <button
-                  key={
-                    item.year
-                  }
+            <section
+              className="reports-summary"
+            >
+
+              {/* TOTAL INCOME */}
+
+              <article
+                className="report-summary-card"
+              >
+
+                <div
                   className="
-                    year-report-card
+                    report-summary-icon
+                    income
                   "
-                  onClick={() =>
-                    navigate(
-                      `/reports/${item.year}`
-                    )
+                >
+
+                  <TrendingUp
+                    size={20}
+                  />
+
+                </div>
+
+
+                <span>
+                  Total Income
+                </span>
+
+
+                <strong>
+
+                  ₹
+                  {totalIncome.toLocaleString(
+                    "en-IN"
+                  )}
+
+                </strong>
+
+
+                <small>
+                  Money earned
+                </small>
+
+              </article>
+
+
+              {/* TOTAL EXPENSES */}
+
+              <article
+                className="report-summary-card"
+              >
+
+                <div
+                  className="
+                    report-summary-icon
+                    expense
+                  "
+                >
+
+                  <TrendingDown
+                    size={20}
+                  />
+
+                </div>
+
+
+                <span>
+                  Total Expenses
+                </span>
+
+
+                <strong>
+
+                  ₹
+                  {totalExpenses.toLocaleString(
+                    "en-IN"
+                  )}
+
+                </strong>
+
+
+                <small>
+                  Money spent
+                </small>
+
+              </article>
+
+
+              {/* NET SAVINGS */}
+
+              <article
+                className="report-summary-card"
+              >
+
+                <div
+                  className="
+                    report-summary-icon
+                    savings
+                  "
+                >
+
+                  <Wallet
+                    size={20}
+                  />
+
+                </div>
+
+
+                <span>
+                  Net Savings
+                </span>
+
+
+                <strong
+                  className={
+                    netSavings >= 0
+                      ? "report-positive"
+                      : "report-negative"
                   }
                 >
 
+                  ₹
+                  {netSavings.toLocaleString(
+                    "en-IN"
+                  )}
 
-                  {/* TOP */}
-
-                  <div
-                    className="
-                      year-report-card-top
-                    "
-                  >
-
-                    <div
-                      className="
-                        year-report-icon
-                      "
-                    >
-
-                      <CalendarDays
-                        size={22}
-                      />
-
-                    </div>
+                </strong>
 
 
-                    <ArrowRight
-                      className="
-                        year-report-arrow
-                      "
-                      size={20}
-                    />
+                <small>
+                  Income minus expenses
+                </small>
 
-                  </div>
+              </article>
 
 
-                  {/* YEAR */}
+              {/* TOTAL TRANSACTIONS */}
+
+              <article
+                className="report-summary-card"
+              >
+
+                <div
+                  className="
+                    report-summary-icon
+                    transactions
+                  "
+                >
+
+                  <BarChart3
+                    size={20}
+                  />
+
+                </div>
+
+
+                <span>
+                  Total Transactions
+                </span>
+
+
+                <strong>
+                  {totalTransactions}
+                </strong>
+
+
+                <small>
+                  Recorded transactions
+                </small>
+
+              </article>
+
+            </section>
+
+
+            {/* =============================================
+                SPENDING BY CATEGORY
+            ============================================= */}
+
+            <section
+              className="reports-category-section"
+            >
+
+              <div
+                className="reports-section-header"
+              >
+
+                <div>
+
+                  <h2>
+                    Spending by Category
+                  </h2>
+
+
+                  <p>
+                    See where most of your
+                    money goes
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              {categoryReport.length === 0 ? (
+
+                <div
+                  className="reports-empty-state"
+                >
 
                   <h3>
-
-                    {item.year}
-
+                    No expense data yet
                   </h3>
 
 
-                  {/* INFORMATION */}
+                  <p>
+                    Add expense transactions
+                    to see your spending
+                    by category.
+                  </p>
 
-                  <div
-                    className="
-                      year-report-info
-                    "
-                  >
+                </div>
 
-                    <div>
+              ) : (
 
-                      <span>
-                        Total Spent
-                      </span>
+                <div
+                  className="category-report-list"
+                >
 
+                  {categoryReport.map(
+                    (item) => (
 
-                      <strong>
+                      <div
+                        className="
+                          category-report-item
+                        "
+                        key={
+                          item.category
+                        }
+                      >
 
-                        ₹
-                        {item.totalExpenses.toLocaleString(
-                          "en-IN"
-                        )}
+                        <div
+                          className="
+                            category-report-top
+                          "
+                        >
 
-                      </strong>
+                          <div
+                            className="
+                              category-report-name
+                            "
+                          >
 
-                    </div>
+                            {item.category}
 
-
-                    <div>
-
-                      <span>
-                        Transactions
-                      </span>
-
-
-                      <strong>
-
-                        {item.transactionCount}
-
-                      </strong>
-
-                    </div>
-
-                  </div>
+                          </div>
 
 
-                  {/* BUTTON TEXT */}
+                          <div
+                            className="
+                              category-report-values
+                            "
+                          >
 
-                  <div
-                    className="
-                      year-report-view
-                    "
-                  >
+                            <strong>
 
-                    View Monthly Report
+                              ₹
+                              {item.amount.toLocaleString(
+                                "en-IN"
+                              )}
+
+                            </strong>
 
 
-                    <ArrowRight
-                      size={16}
-                    />
+                            <span>
 
-                  </div>
+                              {item.percentage}%
 
-                </button>
+                            </span>
 
-              )
-            )}
+                          </div>
 
-          </div>
+                        </div>
 
-        </section>
 
+                        <div
+                          className="
+                            category-progress-track
+                          "
+                        >
+
+                          <div
+                            className="
+                              category-progress-fill
+                            "
+                            style={{
+                              width:
+                                `${item.percentage}%`,
+                            }}
+                          />
+
+                        </div>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              )}
+
+            </section>
+
+
+            {/* =============================================
+                MONTHLY REPORTS
+            ============================================= */}
+
+            <section
+              className="reports-years-section"
+            >
+
+              <div
+                className="reports-section-header"
+              >
+
+                <div>
+
+                  <h2>
+                    Monthly Reports
+                  </h2>
+
+
+                  <p>
+                    Select a year to view
+                    month-by-month spending
+                    from January to December.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div
+                className="year-report-grid"
+              >
+
+                {yearReportList.map(
+                  (item) => (
+
+                    <button
+                      key={
+                        item.year
+                      }
+                      className="
+                        year-report-card
+                      "
+                      onClick={() =>
+                        navigate(
+                          `/reports/${item.year}`
+                        )
+                      }
+                    >
+
+                      {/* TOP */}
+
+                      <div
+                        className="
+                          year-report-card-top
+                        "
+                      >
+
+                        <div
+                          className="
+                            year-report-icon
+                          "
+                        >
+
+                          <CalendarDays
+                            size={22}
+                          />
+
+                        </div>
+
+
+                        <ArrowRight
+                          className="
+                            year-report-arrow
+                          "
+                          size={20}
+                        />
+
+                      </div>
+
+
+                      {/* YEAR */}
+
+                      <h3>
+                        {item.year}
+                      </h3>
+
+
+                      {/* INFORMATION */}
+
+                      <div
+                        className="
+                          year-report-info
+                        "
+                      >
+
+                        <div>
+
+                          <span>
+                            Total Spent
+                          </span>
+
+
+                          <strong>
+
+                            ₹
+                            {item.totalExpenses.toLocaleString(
+                              "en-IN"
+                            )}
+
+                          </strong>
+
+                        </div>
+
+
+                        <div>
+
+                          <span>
+                            Transactions
+                          </span>
+
+
+                          <strong>
+                            {item.transactionCount}
+                          </strong>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* VIEW */}
+
+                      <div
+                        className="
+                          year-report-view
+                        "
+                      >
+
+                        View Monthly Report
+
+
+                        <ArrowRight
+                          size={16}
+                        />
+
+                      </div>
+
+                    </button>
+
+                  )
+                )}
+
+              </div>
+
+            </section>
+
+          </>
+
+        )}
 
       </section>
 

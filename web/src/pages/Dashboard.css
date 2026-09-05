@@ -4,11 +4,8 @@
 
 .dashboard-page {
   min-height: 100vh;
-
   display: flex;
-
   background: #f6faf8;
-
   color: #172033;
 }
 
@@ -19,11 +16,8 @@
 
 .dashboard-main {
   flex: 1;
-
   min-width: 0;
-
   padding: 28px 32px 40px;
-
   overflow-x: hidden;
 }
 
@@ -34,11 +28,8 @@
 
 .summary-grid {
   display: grid;
-
-  grid-template-columns: repeat(4, 1fr);
-
-  gap: 15px;
-
+  grid-template-columns: repeat(3, 1fr);
+  gap: 17px;
   margin-bottom: 17px;
 }
 
@@ -49,11 +40,8 @@
 
 .dashboard-grid {
   display: grid;
-
   grid-template-columns: 1.55fr 1fr;
-
   gap: 17px;
-
   margin-bottom: 17px;
 }
 
@@ -64,10 +52,18 @@
 
 .bottom-grid {
   display: grid;
-
   grid-template-columns: 1.55fr 1fr;
-
   gap: 17px;
+}
+
+
+/* =========================================================
+   SUMMARY CARD SIZING
+========================================================= */
+
+.summary-grid > * {
+  min-width: 0;
+  width: 100%;
 }
 
 
@@ -89,8 +85,13 @@
   .bottom-grid {
     grid-template-columns: 1fr;
   }
+
 }
 
+
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
 
 @media (max-width: 750px) {
 
@@ -104,13 +105,20 @@
 
   .summary-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
+
 }
 
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
 
 @media (max-width: 480px) {
 
   .summary-grid {
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 
@@ -118,4 +126,5 @@
   .bottom-grid {
     gap: 12px;
   }
+
 }

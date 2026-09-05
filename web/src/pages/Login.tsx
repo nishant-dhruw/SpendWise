@@ -37,6 +37,10 @@ function Login() {
   // Error message
   const [error, setError] = useState("");
 
+  // =====================================================
+  // LOGIN HANDLER
+  // =====================================================
+
   const handleLogin = async (
     e: FormEvent<HTMLFormElement>
   ) => {
@@ -47,15 +51,20 @@ function Login() {
 
     // Basic validation
     if (!email.trim() || !password.trim()) {
-      setError("Please enter your email and password.");
+      setError(
+        "Please enter your email and password."
+      );
+
       return;
     }
 
     try {
       setLoading(true);
 
-      // IMPORTANT:
-      // Use the normal URL here, not Markdown formatting
+      // =====================================================
+      // LOGIN API REQUEST
+      // =====================================================
+
       const response = await fetch(
         "http://localhost:5000/api/auth/login",
         {
@@ -72,10 +81,13 @@ function Login() {
         }
       );
 
-      // Get response data safely
+      // Get response data
       const data = await response.json();
 
-      // Login failed
+      // =====================================================
+      // LOGIN FAILED
+      // =====================================================
+
       if (!response.ok) {
         setError(
           data.message ||
@@ -85,7 +97,10 @@ function Login() {
         return;
       }
 
-      // Check token exists
+      // =====================================================
+      // CHECK TOKEN
+      // =====================================================
+
       if (!data.token) {
         setError(
           "Login was successful, but no authentication token was received."
@@ -94,39 +109,94 @@ function Login() {
         return;
       }
 
-      // Save authentication token
+      // =====================================================
+      // SAVE AUTHENTICATION DATA
+      // =====================================================
+
       if (rememberMe) {
-        localStorage.setItem("token", data.token);
+
+        // Persistent login
+
+        localStorage.setItem(
+          "token",
+          data.token
+        );
 
         localStorage.setItem(
           "user",
           JSON.stringify(data.user)
         );
+
+        // Remove old session token if it exists
+
+        sessionStorage.removeItem(
+          "token"
+        );
+
+        sessionStorage.removeItem(
+          "user"
+        );
+
       } else {
-        sessionStorage.setItem("token", data.token);
+
+        // Login only for current browser session
+
+        sessionStorage.setItem(
+          "token",
+          data.token
+        );
 
         sessionStorage.setItem(
           "user",
           JSON.stringify(data.user)
         );
+
+        // Remove old persistent token if it exists
+
+        localStorage.removeItem(
+          "token"
+        );
+
+        localStorage.removeItem(
+          "user"
+        );
+
       }
 
-      console.log("Login successful:", data);
+      console.log(
+        "Login successful:",
+        data
+      );
 
-      // Redirect ONLY after successful login
-      navigate("/dashboard");
+      // =====================================================
+      // REDIRECT TO DASHBOARD
+      // =====================================================
+
+      navigate(
+        "/dashboard",
+        {
+          replace: true,
+        }
+      );
 
     } catch (error) {
-      console.error("Login error:", error);
+
+      console.error(
+        "Login error:",
+        error
+      );
 
       setError(
         "Unable to connect to the server. Please make sure the backend server is running."
       );
 
     } finally {
+
       setLoading(false);
+
     }
   };
+
 
   return (
     <main className="login-page">
@@ -159,6 +229,7 @@ function Login() {
             <div className="hero-logo">
               <WalletCards size={28} />
             </div>
+
 
             <div>
 
@@ -208,11 +279,15 @@ function Login() {
                 </div>
 
                 <div>
-                  <h3>Track Expenses</h3>
+
+                  <h3>
+                    Track Expenses
+                  </h3>
 
                   <p>
                     Know where every rupee goes.
                   </p>
+
                 </div>
 
               </div>
@@ -225,11 +300,15 @@ function Login() {
                 </div>
 
                 <div>
-                  <h3>Manage Your Money</h3>
+
+                  <h3>
+                    Manage Your Money
+                  </h3>
 
                   <p>
                     Keep all your accounts in one place.
                   </p>
+
                 </div>
 
               </div>
@@ -242,11 +321,15 @@ function Login() {
                 </div>
 
                 <div>
-                  <h3>Achieve Your Goals</h3>
+
+                  <h3>
+                    Achieve Your Goals
+                  </h3>
 
                   <p>
                     Save today for what matters tomorrow.
                   </p>
+
                 </div>
 
               </div>
@@ -259,11 +342,15 @@ function Login() {
                 </div>
 
                 <div>
-                  <h3>Understand Spending</h3>
+
+                  <h3>
+                    Understand Spending
+                  </h3>
 
                   <p>
                     Turn your data into useful insights.
                   </p>
+
                 </div>
 
               </div>
@@ -353,6 +440,7 @@ function Login() {
 
 
                   <div className="category-list">
+
 
                     <div>
 
@@ -475,7 +563,9 @@ function Login() {
             </div>
 
 
-            {/* Login Form */}
+            {/* =====================================================
+                LOGIN FORM
+            ===================================================== */}
 
             <form
               className="login-form"
@@ -483,7 +573,7 @@ function Login() {
             >
 
 
-              {/* Error */}
+              {/* Error Message */}
 
               {error && (
 
@@ -529,7 +619,9 @@ function Login() {
                     autoComplete="email"
                     value={email}
                     onChange={(e) =>
-                      setEmail(e.target.value)
+                      setEmail(
+                        e.target.value
+                      )
                     }
                   />
 
@@ -576,7 +668,9 @@ function Login() {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) =>
-                      setPassword(e.target.value)
+                      setPassword(
+                        e.target.value
+                      )
                     }
                   />
 
@@ -618,7 +712,9 @@ function Login() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) =>
-                    setRememberMe(e.target.checked)
+                    setRememberMe(
+                      e.target.checked
+                    )
                   }
                 />
 

@@ -1,5 +1,9 @@
 const express = require("express");
 
+// =====================================================
+// CONTROLLERS
+// =====================================================
+
 const {
   createTransaction,
   getTransactions,
@@ -8,23 +12,78 @@ const {
   deleteTransaction,
 } = require("../controllers/transactionController");
 
-const authMiddleware = require("../middleware/authMiddleware");
+
+// =====================================================
+// AUTHENTICATION MIDDLEWARE
+// =====================================================
+
+const protect = require("../middleware/authMiddleware");
+
+
+// =====================================================
+// ROUTER
+// =====================================================
 
 const router = express.Router();
 
+
+// =====================================================
 // CREATE TRANSACTION
-router.post("/", authMiddleware, createTransaction);
+// =====================================================
 
+router.post(
+  "/",
+  protect,
+  createTransaction
+);
+
+
+// =====================================================
 // GET ALL TRANSACTIONS
-router.get("/", authMiddleware, getTransactions);
+// =====================================================
 
+router.get(
+  "/",
+  protect,
+  getTransactions
+);
+
+
+// =====================================================
 // GET SINGLE TRANSACTION
-router.get("/:id", authMiddleware, getTransactionById);
+// =====================================================
 
+router.get(
+  "/:id",
+  protect,
+  getTransactionById
+);
+
+
+// =====================================================
 // UPDATE TRANSACTION
-router.put("/:id", authMiddleware, updateTransaction);
+// =====================================================
 
+router.put(
+  "/:id",
+  protect,
+  updateTransaction
+);
+
+
+// =====================================================
 // DELETE TRANSACTION
-router.delete("/:id", authMiddleware, deleteTransaction);
+// =====================================================
+
+router.delete(
+  "/:id",
+  protect,
+  deleteTransaction
+);
+
+
+// =====================================================
+// EXPORT ROUTER
+// =====================================================
 
 module.exports = router;

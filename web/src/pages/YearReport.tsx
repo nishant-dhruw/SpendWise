@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ArrowLeft,
@@ -16,11 +16,17 @@ import Sidebar from "../components/Sidebar";
 import "./YearReport.css";
 
 
+// =========================================================
+// TRANSACTION INTERFACE
+// =========================================================
+
 interface Transaction {
 
-  id: number;
+  _id: string;
 
-  type: "income" | "expense";
+  type:
+    | "income"
+    | "expense";
 
   category: string;
 
@@ -30,24 +36,28 @@ interface Transaction {
 
   date: string;
 
-  accountName: string;
+  account: string;
 
 }
 
 
+// =========================================================
+// COMPONENT
+// =========================================================
+
 function YearReport() {
 
-  // =========================================================
+  // =======================================================
   // NAVIGATION
-  // =========================================================
+  // =======================================================
 
   const navigate =
     useNavigate();
 
 
-  // =========================================================
+  // =======================================================
   // GET YEAR FROM URL
-  // =========================================================
+  // =======================================================
 
   const { year } =
     useParams();
@@ -57,29 +67,170 @@ function YearReport() {
     Number(year);
 
 
-  // =========================================================
-  // TRANSACTIONS
-  // =========================================================
+  // =======================================================
+  // TRANSACTIONS STATE
+  // =======================================================
 
-  const [transactions] =
-    useState<Transaction[]>(() => {
-
-      const savedTransactions =
-        localStorage.getItem(
-          "spendwise_transactions"
-        );
+  const [
+    transactions,
+    setTransactions,
+  ] = useState<Transaction[]>([]);
 
 
-      return savedTransactions
-        ? JSON.parse(savedTransactions)
-        : [];
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-    });
+
+  const [
+    error,
+    setError,
+  ] = useState("");
 
 
-  // =========================================================
+  // =======================================================
+  // GET TOKEN
+  // =======================================================
+
+  const getToken = () => {
+
+    return (
+      localStorage.getItem("token") ||
+      sessionStorage.getItem("token")
+    );
+
+  };
+
+
+  // =======================================================
+  // FETCH TRANSACTIONS
+  // =======================================================
+
+  useEffect(() => {
+
+    const fetchTransactions =
+      async () => {
+
+        try {
+
+          setLoading(true);
+
+          setError("");
+
+
+          const token =
+            getToken();
+
+
+          // ===============================================
+          // AUTH CHECK
+          // ===============================================
+
+          if (!token) {
+
+            navigate(
+              "/login",
+              {
+                replace: true,
+              }
+            );
+
+            return;
+
+          }
+
+
+          // ===============================================
+          // FETCH BACKEND TRANSACTIONS
+          // ===============================================
+
+          const response =
+            await fetch(
+              "http://localhost:5000/api/transactions",
+              {
+                method: "GET",
+
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`,
+
+                  "Content-Type":
+                    "application/json",
+                },
+              }
+            );
+
+
+          const data =
+            await response.json();
+
+
+          // ===============================================
+          // CHECK RESPONSE
+          // ===============================================
+
+          if (!response.ok) {
+
+            throw new Error(
+              data.message ||
+              "Failed to fetch transactions."
+            );
+
+          }
+
+
+          // ===============================================
+          // SAVE TRANSACTIONS
+          // ===============================================
+
+          setTransactions(
+            data.transactions || []
+          );
+
+
+        } catch (err) {
+
+          console.error(
+            "Error fetching yearly report:",
+            err
+          );
+
+
+          if (
+            err instanceof Error
+          ) {
+
+            setError(
+              err.message
+            );
+
+          } else {
+
+            setError(
+              "Unable to load yearly report."
+            );
+
+          }
+
+
+        } finally {
+
+          setLoading(false);
+
+        }
+
+      };
+
+
+    fetchTransactions();
+
+  }, [navigate]);
+
+
+  // =======================================================
   // MONTHS
-  // =========================================================
+  // =======================================================
 
   const months = [
 
@@ -110,9 +261,9 @@ function YearReport() {
   ];
 
 
-  // =========================================================
+  // =======================================================
   // MONTHLY EXPENSE DATA
-  // =========================================================
+  // =======================================================
 
   const monthlyData =
     months.map(
@@ -127,19 +278,28 @@ function YearReport() {
               transaction
             ) => {
 
+              const dateString =
+                transaction.date
+                  .split("T")[0];
+
+
               const date =
                 new Date(
-                  transaction.date
+                  `${dateString}T00:00:00`
                 );
 
 
               return (
 
                 transaction.type ===
-                  "expense" &&
+                  "expense"
+
+                &&
 
                 date.getFullYear() ===
-                  selectedYear &&
+                  selectedYear
+
+                &&
 
                 date.getMonth() ===
                   monthIndex
@@ -150,6 +310,10 @@ function YearReport() {
           );
 
 
+        // =============================================
+        // MONTH EXPENSE TOTAL
+        // =============================================
+
         const totalExpenses =
           monthTransactions.reduce(
             (
@@ -157,7 +321,9 @@ function YearReport() {
               transaction
             ) =>
               total +
-              transaction.amount,
+              Number(
+                transaction.amount
+              ),
             0
           );
 
@@ -177,9 +343,9 @@ function YearReport() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // HIGHEST MONTHLY SPENDING
-  // =========================================================
+  // =======================================================
 
   const highestMonthlySpending =
     Math.max(
@@ -193,9 +359,9 @@ function YearReport() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // YEAR TOTAL
-  // =========================================================
+  // =======================================================
 
   const yearTotal =
     monthlyData.reduce(
@@ -209,38 +375,63 @@ function YearReport() {
     );
 
 
+  // =======================================================
+  // YEAR TRANSACTIONS
+  //
+  // Count ALL transactions for the selected year,
+  // not only expenses.
+  // =======================================================
+
   const yearTransactions =
-    monthlyData.reduce(
+    transactions.filter(
       (
-        total,
-        item
-      ) =>
-        total +
-        item.transactionCount,
-      0
-    );
+        transaction
+      ) => {
+
+        const dateString =
+          transaction.date
+            .split("T")[0];
 
 
-  // =========================================================
+        const date =
+          new Date(
+            `${dateString}T00:00:00`
+          );
+
+
+        return (
+          date.getFullYear() ===
+          selectedYear
+        );
+
+      }
+    ).length;
+
+
+  // =======================================================
   // RENDER
-  // =========================================================
+  // =======================================================
 
   return (
 
-    <main className="year-report-page">
+    <main
+      className="year-report-page"
+    >
 
       <Sidebar />
 
 
-      <section className="year-report-main">
-
+      <section
+        className="year-report-main"
+      >
 
         {/* ===============================================
             HEADER
         =============================================== */}
 
-        <div className="year-report-header">
-
+        <div
+          className="year-report-header"
+        >
 
           <button
             className="back-to-reports"
@@ -284,209 +475,261 @@ function YearReport() {
 
 
         {/* ===============================================
-            YEAR SUMMARY
+            ERROR
         =============================================== */}
 
-        <section className="year-summary-grid">
+        {error && (
 
+          <div
+            style={{
+              color: "#dc2626",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+              padding: "12px 16px",
+              borderRadius: "10px",
+              marginBottom: "20px",
+            }}
+          >
 
-          <article className="year-summary-card">
+            {error}
 
-            <div className="year-summary-icon">
+          </div>
 
-              <TrendingDown
-                size={22}
-              />
-
-            </div>
-
-
-            <span>
-
-              Total Spent
-
-            </span>
-
-
-            <strong>
-
-              ₹
-              {yearTotal.toLocaleString(
-                "en-IN"
-              )}
-
-            </strong>
-
-          </article>
-
-
-          <article className="year-summary-card">
-
-            <div className="year-summary-icon">
-
-              <CalendarDays
-                size={22}
-              />
-
-            </div>
-
-
-            <span>
-
-              Transactions
-
-            </span>
-
-
-            <strong>
-
-              {yearTransactions}
-
-            </strong>
-
-          </article>
-
-
-        </section>
+        )}
 
 
         {/* ===============================================
-            MONTHLY LIST
+            LOADING
         =============================================== */}
 
-        <section className="year-months-section">
+        {loading ? (
+
+          <div
+            className="reports-empty-state"
+          >
+
+            <h3>
+              Loading report...
+            </h3>
 
 
-          <div className="year-months-header">
-
-            <div>
-
-              <h2>
-
-                Monthly Spending
-
-              </h2>
-
-
-              <p>
-
-                Your expenses for each month
-
-              </p>
-
-            </div>
+            <p>
+              Fetching your transaction
+              data.
+            </p>
 
           </div>
 
+        ) : (
 
-          <div className="year-months-list">
+          <>
 
+            {/* =============================================
+                YEAR SUMMARY
+            ============================================= */}
 
-            {monthlyData.map(
-              (
-                item
-              ) => {
+            <section
+              className="year-summary-grid"
+            >
 
+              <article
+                className="year-summary-card"
+              >
 
-                const percentage =
-                  highestMonthlySpending > 0
-                    ? (
-                        item.totalExpenses /
-                        highestMonthlySpending
-                      ) *
-                      100
-                    : 0;
+                <div
+                  className="year-summary-icon"
+                >
 
+                  <TrendingDown
+                    size={22}
+                  />
 
-                return (
-
-                  <div
-                    className="year-month-item"
-                    key={item.month}
-                  >
-
-
-                    <div className="year-month-top">
+                </div>
 
 
-                      <div className="year-month-name">
-
-                        <CalendarDays
-                          size={19}
-                        />
+                <span>
+                  Total Spent
+                </span>
 
 
-                        <span>
+                <strong>
 
-                          {item.month}
+                  ₹
+                  {yearTotal.toLocaleString(
+                    "en-IN"
+                  )}
 
-                        </span>
+                </strong>
 
-                      </div>
-
-
-                      <div className="year-month-values">
-
-
-                        <strong>
-
-                          ₹
-                          {item.totalExpenses.toLocaleString(
-                            "en-IN"
-                          )}
-
-                        </strong>
+              </article>
 
 
-                        <span>
+              <article
+                className="year-summary-card"
+              >
 
-                          {
-                            item.transactionCount
-                          }
-                          {" "}
-                          transaction
-                          {
-                            item.transactionCount !==
-                            1
-                              ? "s"
-                              : ""
-                          }
+                <div
+                  className="year-summary-icon"
+                >
 
-                        </span>
+                  <CalendarDays
+                    size={22}
+                  />
 
-                      </div>
+                </div>
 
 
-                    </div>
+                <span>
+                  Transactions
+                </span>
 
 
-                    <div className="year-month-progress">
+                <strong>
+                  {yearTransactions}
+                </strong>
 
+              </article>
+
+            </section>
+
+
+            {/* =============================================
+                MONTHLY LIST
+            ============================================= */}
+
+            <section
+              className="year-months-section"
+            >
+
+              <div
+                className="year-months-header"
+              >
+
+                <div>
+
+                  <h2>
+                    Monthly Spending
+                  </h2>
+
+
+                  <p>
+                    Your expenses for each month
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div
+                className="year-months-list"
+              >
+
+                {monthlyData.map(
+                  (
+                    item
+                  ) => {
+
+                    const percentage =
+                      highestMonthlySpending > 0
+                        ? (
+                            item.totalExpenses /
+                            highestMonthlySpending
+                          ) *
+                          100
+                        : 0;
+
+
+                    return (
 
                       <div
-                        className="year-month-progress-fill"
-                        style={{
-                          width:
-                            `${percentage}%`,
-                        }}
-                      />
+                        className="year-month-item"
+                        key={item.month}
+                      >
 
-                    </div>
+                        <div
+                          className="year-month-top"
+                        >
 
+                          <div
+                            className="year-month-name"
+                          >
 
-                  </div>
-
-                );
-
-              }
-            )}
-
-
-          </div>
+                            <CalendarDays
+                              size={19}
+                            />
 
 
-        </section>
+                            <span>
+                              {item.month}
+                            </span>
 
+                          </div>
+
+
+                          <div
+                            className="year-month-values"
+                          >
+
+                            <strong>
+
+                              ₹
+                              {item.totalExpenses.toLocaleString(
+                                "en-IN"
+                              )}
+
+                            </strong>
+
+
+                            <span>
+
+                              {
+                                item.transactionCount
+                              }
+                              {" "}
+                              transaction
+                              {
+                                item.transactionCount !==
+                                1
+                                  ? "s"
+                                  : ""
+                              }
+
+                            </span>
+
+                          </div>
+
+                        </div>
+
+
+                        <div
+                          className="year-month-progress"
+                        >
+
+                          <div
+                            className="year-month-progress-fill"
+                            style={{
+                              width:
+                                `${percentage}%`,
+                            }}
+                          />
+
+                        </div>
+
+                      </div>
+
+                    );
+
+                  }
+                )}
+
+              </div>
+
+            </section>
+
+          </>
+
+        )}
 
       </section>
 

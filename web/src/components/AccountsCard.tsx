@@ -3,9 +3,13 @@ import {
   ArrowUpRight,
   Trash2,
   Pencil,
+  AlertTriangle,
+  X,
+  ReceiptText,
 } from "lucide-react";
 
 import { useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import AddAccountModal from "./AddAccountModal";
@@ -15,16 +19,29 @@ import DeleteAccountModal from "./DeleteAccountModal";
 import "./AccountsCard.css";
 
 
+// =====================================================
+// ACCOUNT INTERFACE
+// =====================================================
+
 interface Account {
+  _id?: string;
   name: string;
   type: string;
   balance: number;
 }
 
 
+// =====================================================
+// TRANSACTION INTERFACE
+// =====================================================
+
 interface Transaction {
-  id: number;
-  type: "income" | "expense";
+  id: string;
+
+  type:
+    | "income"
+    | "expense";
+
   category: string;
   description: string;
   amount: number;
@@ -33,44 +50,74 @@ interface Transaction {
 }
 
 
+// =====================================================
+// PROPS
+// =====================================================
+
 interface AccountsCardProps {
   accounts: Account[];
 
-  setAccounts: React.Dispatch<
-    React.SetStateAction<Account[]>
-  >;
+  // ===================================================
+  // ADD ACCOUNT
+  // ===================================================
 
-  onAddTransaction: (
-    transaction: Transaction
-  ) => void;
+  onAddAccount:
+    (
+      account: Account
+    ) => Promise<void>;
 
-  onEditAccount: (
-    oldAccount: Account,
-    updatedAccount: Account
-  ) => void;
+  // ===================================================
+  // ADD TRANSACTION
+  //
+  // Kept here so the existing Dashboard connection
+  // continues to work.
+  //
+  // Account starting balance is NOT a transaction.
+  // ===================================================
+
+  onAddTransaction:
+    (
+      transaction: Transaction
+    ) => Promise<void> | void;
+
+  // ===================================================
+  // EDIT ACCOUNT
+  // ===================================================
+
+  onEditAccount:
+    (
+      oldAccount: Account,
+      updatedAccount: Account
+    ) => Promise<void>;
+
+  // ===================================================
+  // DELETE ACCOUNT
+  // ===================================================
+
+  onDeleteAccount:
+    (
+      account: Account
+    ) => Promise<void>;
 }
 
 
+// =====================================================
+// COMPONENT
+// =====================================================
+
 function AccountsCard({
-
   accounts,
-
-  setAccounts,
-
-  onAddTransaction,
-
+  onAddAccount,
   onEditAccount,
-
+  onDeleteAccount,
 }: AccountsCardProps) {
 
-
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
 
-  // =========================================
+  // =====================================================
   // MODAL STATES
-  // =========================================
+  // =====================================================
 
   const [
     showAddAccount,
@@ -81,206 +128,236 @@ function AccountsCard({
   const [
     accountToDelete,
     setAccountToDelete,
-  ] = useState<Account | null>(
-    null
-  );
+  ] = useState<Account | null>(null);
 
 
   const [
     accountToEdit,
     setAccountToEdit,
-  ] = useState<Account | null>(
-    null
-  );
+  ] = useState<Account | null>(null);
 
 
-  // =========================================
-  // ADD ACCOUNT
-  // =========================================
+  // =====================================================
+  // ERROR MODAL STATE
+  // =====================================================
 
-  const handleAddAccount = (
-    account: Account
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
+
+
+  const [
+    showErrorModal,
+    setShowErrorModal,
+  ] = useState(false);
+
+
+  // =====================================================
+  // SHOW ERROR MODAL
+  // =====================================================
+
+  const showError = (
+    message: string
   ) => {
 
+    setErrorMessage(message);
 
-    // =====================================
-    // PREVENT DUPLICATE ACCOUNT NAME
-    // =====================================
+    setShowErrorModal(true);
 
-    const duplicateName =
-      accounts.some(
-
-        (currentAccount) =>
-
-          currentAccount.name
-            .trim()
-            .toLowerCase() ===
-
-          account.name
-            .trim()
-            .toLowerCase()
-
-      );
+  };
 
 
-    if (duplicateName) {
+  // =====================================================
+  // CLOSE ERROR MODAL
+  // =====================================================
 
-      alert(
-        "An account with this name already exists."
-      );
+  const closeErrorModal = () => {
 
-      return;
+    setShowErrorModal(false);
 
-    }
+    setErrorMessage("");
 
-
-    // =====================================
-    // PREVENT DUPLICATE TYPE
-    //
-    // Multiple BANK accounts are allowed.
-    //
-    // Only one Cash, Wallet and Savings
-    // account is allowed.
-    // =====================================
-
-    if (
-      account.type !== "bank"
-    ) {
+  };
 
 
-      const duplicateType =
+  // =====================================================
+  // ADD ACCOUNT
+  // =====================================================
+
+  const handleAddAccount =
+
+    async (
+      account: Account
+    ) => {
+
+      // =================================================
+      // PREVENT DUPLICATE ACCOUNT NAME
+      // =================================================
+
+      const duplicateName =
         accounts.some(
-
           (currentAccount) =>
-
-            currentAccount.type ===
-            account.type
-
+            currentAccount.name
+              .trim()
+              .toLowerCase()
+            ===
+            account.name
+              .trim()
+              .toLowerCase()
         );
 
 
-      if (duplicateType) {
+      if (duplicateName) {
 
-        alert(
-          "An account with this type already exists."
+        showError(
+          "An account with this name already exists. Please choose a different name."
         );
 
         return;
 
       }
 
-    }
+
+      // =================================================
+      // PREVENT DUPLICATE TYPE
+      //
+      // MULTIPLE BANK ACCOUNTS ARE ALLOWED
+      // =================================================
+
+      if (
+        account.type !== "bank"
+      ) {
+
+        const duplicateType =
+          accounts.some(
+            (currentAccount) =>
+              currentAccount.type ===
+              account.type
+          );
 
 
-    // =====================================
-    // ADD ACCOUNT
-    // =====================================
+        if (duplicateType) {
 
-    setAccounts(
+          showError(
+            "An account with this type already exists. You can have multiple bank accounts, but only one account of this type."
+          );
 
-      (currentAccounts) => [
+          return;
 
-        ...currentAccounts,
+        }
 
-        account,
-
-      ]
-
-    );
+      }
 
 
-    // =====================================
-    // CREATE INITIAL BALANCE TRANSACTION
-    // =====================================
+      try {
 
-    if (account.balance > 0) {
+        // =================================================
+        // ADD ACCOUNT USING DASHBOARD FUNCTION
+        // =================================================
 
-
-      const today =
-        new Date()
-          .toISOString()
-          .split("T")[0];
+        await onAddAccount(
+          account
+        );
 
 
-      const incomeTransaction:
-        Transaction = {
-
-          id:
-            Date.now(),
-
-          type:
-            "income",
-
-          category:
-            "other",
-
-          description:
-            `Initial balance - ${account.name}`,
-
-          amount:
-            account.balance,
-
-          date:
-            today,
-
-          accountName:
-            account.name,
-
-        };
+        // =================================================
+        // IMPORTANT
+        //
+        // The starting account balance is NOT an income
+        // transaction.
+        //
+        // Example:
+        //
+        // SBI → ₹10,000
+        //
+        // This means the user already has ₹10,000.
+        // It should increase the account balance only.
+        //
+        // No transaction is created here.
+        // =================================================
 
 
-      onAddTransaction(
-        incomeTransaction
-      );
+        // =================================================
+        // CLOSE ADD MODAL
+        // =================================================
 
-    }
+        setShowAddAccount(
+          false
+        );
 
+      } catch (error) {
 
-    // =====================================
-    // CLOSE MODAL
-    // =====================================
-
-    setShowAddAccount(
-      false
-    );
-
-  };
+        console.error(
+          "Error creating account:",
+          error
+        );
 
 
-  // =========================================
+        showError(
+          error instanceof Error
+            ? error.message
+            : "Unable to create the account. Please try again."
+        );
+
+      }
+
+    };
+
+
+  // =====================================================
   // EDIT ACCOUNT
-  // =========================================
+  // =====================================================
 
-  const handleEditAccount = (
+  const handleEditAccount =
 
-    oldAccount: Account,
+    async (
+      oldAccount: Account,
+      updatedAccount: Account
+    ) => {
 
-    updatedAccount: Account
+      try {
 
-  ) => {
+        // =================================================
+        // EDIT ACCOUNT USING DASHBOARD FUNCTION
+        // =================================================
 
-
-    onEditAccount(
-
-      oldAccount,
-
-      updatedAccount
-
-    );
-
-
-    // Close modal
-
-    setAccountToEdit(
-      null
-    );
-
-  };
+        await onEditAccount(
+          oldAccount,
+          updatedAccount
+        );
 
 
-  // =========================================
-  // DELETE ACCOUNT
-  // =========================================
+        // =================================================
+        // CLOSE EDIT MODAL
+        // =================================================
+
+        setAccountToEdit(
+          null
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Error updating account:",
+          error
+        );
+
+
+        showError(
+          error instanceof Error
+            ? error.message
+            : "Unable to update the account. Please try again."
+        );
+
+      }
+
+    };
+
+
+  // =====================================================
+  // OPEN DELETE MODAL
+  // =====================================================
 
   const handleDeleteAccount = (
     account: Account
@@ -293,55 +370,84 @@ function AccountsCard({
   };
 
 
-  const confirmDeleteAccount =
-    () => {
+  // =====================================================
+  // CONFIRM DELETE
+  // =====================================================
 
+  const confirmDeleteAccount =
+
+    async () => {
 
       if (!accountToDelete) {
-
         return;
-
       }
 
 
-      setAccounts(
+      try {
 
-        (currentAccounts) =>
+        // =================================================
+        // DELETE USING DASHBOARD FUNCTION
+        // =================================================
 
-          currentAccounts.filter(
-
-            (currentAccount) =>
-
-              currentAccount.name !==
-              accountToDelete.name
-
-          )
-
-      );
+        await onDeleteAccount(
+          accountToDelete
+        );
 
 
-      setAccountToDelete(
-        null
-      );
+        // =================================================
+        // DELETE SUCCESSFUL
+        // =================================================
+
+        setAccountToDelete(
+          null
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Error deleting account:",
+          error
+        );
+
+
+        // =================================================
+        // CLOSE DELETE CONFIRMATION MODAL
+        // =================================================
+
+        setAccountToDelete(
+          null
+        );
+
+
+        // =================================================
+        // SHOW BEAUTIFUL ERROR MODAL
+        // =================================================
+
+        showError(
+          error instanceof Error
+            ? error.message
+            : "Unable to delete this account. Please try again."
+        );
+
+      }
 
     };
 
 
-  // =========================================
+  // =====================================================
   // RENDER
-  // =========================================
+  // =====================================================
 
   return (
 
     <article className="accounts-card">
 
 
-      {/* =====================================
+      {/* =================================================
           HEADER
-      ====================================== */}
+      ================================================= */}
 
       <div className="accounts-card-header">
-
 
         <div>
 
@@ -357,7 +463,6 @@ function AccountsCard({
 
 
         <button
-
           className="accounts-add-button"
 
           onClick={() =>
@@ -367,23 +472,20 @@ function AccountsCard({
           }
 
           title="Add account"
-
         >
 
           <Plus size={16} />
 
         </button>
 
-
       </div>
 
 
-      {/* =====================================
+      {/* =================================================
           ACCOUNTS LIST
-      ====================================== */}
+      ================================================= */}
 
       <div className="accounts-list">
-
 
         {accounts.length === 0 ? (
 
@@ -398,29 +500,31 @@ function AccountsCard({
         ) : (
 
           accounts.map(
-
-            (account) => (
+            (
+              account
+            ) => (
 
               <div
-
                 className="account-row"
 
-                key={account.name}
-
+                key={
+                  account._id
+                  ||
+                  account.name
+                }
               >
 
 
-                {/* LEFT SIDE */}
+                {/* =================================================
+                    LEFT SIDE
+                ================================================= */}
 
                 <div className="account-left">
 
-
                   <div
-
                     className={
                       `account-icon ${account.type}`
                     }
-
                   >
 
                     {account.type ===
@@ -438,6 +542,10 @@ function AccountsCard({
                     {account.type ===
                       "savings" &&
                       "🎯"}
+
+                    {account.type ===
+                      "other" &&
+                      "💰"}
 
                   </div>
 
@@ -467,34 +575,41 @@ function AccountsCard({
                         "savings" &&
                         "Long-term savings"}
 
+                      {account.type ===
+                        "other" &&
+                        "Other account"}
+
                     </span>
 
                   </div>
 
-
                 </div>
 
 
-                {/* RIGHT SIDE */}
+                {/* =================================================
+                    RIGHT SIDE
+                ================================================= */}
 
                 <div className="account-actions">
 
-
                   <strong>
 
-                    ₹{
-                      account.balance.toLocaleString(
-                        "en-IN"
-                      )
+                    ₹
+                    {
+                      account.balance
+                        .toLocaleString(
+                          "en-IN"
+                        )
                     }
 
                   </strong>
 
 
-                  {/* EDIT */}
+                  {/* =================================================
+                      EDIT
+                  ================================================= */}
 
                   <button
-
                     className="account-edit-button"
 
                     onClick={() =>
@@ -508,7 +623,6 @@ function AccountsCard({
                     aria-label={
                       `Edit ${account.name}`
                     }
-
                   >
 
                     <Pencil size={16} />
@@ -516,10 +630,11 @@ function AccountsCard({
                   </button>
 
 
-                  {/* DELETE */}
+                  {/* =================================================
+                      DELETE
+                  ================================================= */}
 
                   <button
-
                     className="account-delete-button"
 
                     onClick={() =>
@@ -533,35 +648,29 @@ function AccountsCard({
                     aria-label={
                       `Delete ${account.name}`
                     }
-
                   >
 
                     <Trash2 size={16} />
 
                   </button>
 
-
                 </div>
-
 
               </div>
 
             )
-
           )
 
         )}
 
-
       </div>
 
 
-      {/* =====================================
+      {/* =================================================
           VIEW ALL ACCOUNTS
-      ====================================== */}
+      ================================================= */}
 
       <button
-
         className="view-all-accounts"
 
         onClick={() =>
@@ -569,48 +678,49 @@ function AccountsCard({
             "/accounts"
           )
         }
-
       >
 
         <span>
           View all accounts
         </span>
 
-        <ArrowUpRight size={15} />
+        <ArrowUpRight
+          size={15}
+        />
 
       </button>
 
 
-      {/* =====================================
-            ADD ACCOUNT MODAL
-        ===================================== */}
+      {/* =================================================
+          ADD ACCOUNT MODAL
+      ================================================= */}
 
-        {showAddAccount && (
+      {showAddAccount && (
 
-          <AddAccountModal
+        <AddAccountModal
 
-            accounts={
-              accounts
-            }
+          accounts={
+            accounts
+          }
 
-            onClose={() =>
-              setShowAddAccount(
-                false
-              )
-            }
+          onClose={() =>
+            setShowAddAccount(
+              false
+            )
+          }
 
-            onAddAccount={
-              handleAddAccount
-            }
+          onAddAccount={
+            handleAddAccount
+          }
 
-          />
+        />
 
       )}
 
 
-      {/* =====================================
+      {/* =================================================
           EDIT ACCOUNT MODAL
-      ====================================== */}
+      ================================================= */}
 
       {accountToEdit && (
 
@@ -631,14 +741,12 @@ function AccountsCard({
           }
 
           onEditAccount={
-            (updatedAccount) =>
-
+            (
+              updatedAccount
+            ) =>
               handleEditAccount(
-
                 accountToEdit,
-
                 updatedAccount
-
               )
           }
 
@@ -647,9 +755,9 @@ function AccountsCard({
       )}
 
 
-      {/* =====================================
-          DELETE ACCOUNT MODAL
-      ====================================== */}
+      {/* =================================================
+          DELETE ACCOUNT CONFIRMATION MODAL
+      ================================================= */}
 
       {accountToDelete && (
 
@@ -673,6 +781,166 @@ function AccountsCard({
 
       )}
 
+
+      {/* =================================================
+          ERROR MODAL
+      ================================================= */}
+
+      {showErrorModal && (
+
+        <div
+          className="spendwise-error-overlay"
+
+          onClick={
+            closeErrorModal
+          }
+        >
+
+          <div
+            className="spendwise-error-modal"
+
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+
+            {/* =================================================
+                CLOSE BUTTON
+            ================================================= */}
+
+            <button
+              className="spendwise-error-close"
+
+              onClick={
+                closeErrorModal
+              }
+
+              aria-label="Close"
+            >
+
+              <X size={18} />
+
+            </button>
+
+
+            {/* =================================================
+                WARNING ICON
+            ================================================= */}
+
+            <div className="spendwise-error-icon">
+
+              <AlertTriangle
+                size={30}
+              />
+
+            </div>
+
+
+            {/* =================================================
+                TITLE
+            ================================================= */}
+
+            <h2>
+              Can't Delete Account
+            </h2>
+
+
+            {/* =================================================
+                MESSAGE
+            ================================================= */}
+
+            <p className="spendwise-error-message">
+
+              {errorMessage}
+
+            </p>
+
+
+            {/* =================================================
+                HELP BOX
+            ================================================= */}
+
+            <div className="spendwise-error-help">
+
+              <div className="spendwise-error-help-icon">
+
+                <ReceiptText
+                  size={18}
+                />
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  What you can do
+                </strong>
+
+                <span>
+                  Delete or move the linked transaction first, then try deleting this account again.
+                </span>
+
+              </div>
+
+            </div>
+
+
+            {/* =================================================
+                ACTION BUTTONS
+            ================================================= */}
+
+            <div className="spendwise-error-actions">
+
+
+              {/* CLOSE */}
+
+              <button
+                className="spendwise-error-secondary"
+
+                onClick={
+                  closeErrorModal
+                }
+              >
+
+                Close
+
+              </button>
+
+
+              {/* VIEW TRANSACTIONS */}
+
+              <button
+                className="spendwise-error-primary"
+
+                onClick={() => {
+
+                  closeErrorModal();
+
+                  navigate(
+                    "/transactions"
+                  );
+
+                }}
+              >
+
+                View Transactions
+
+                <ArrowUpRight
+                  size={16}
+                />
+
+              </button>
+
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </article>
 

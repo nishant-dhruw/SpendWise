@@ -1,7 +1,6 @@
 import {
   WalletCards,
   Target,
-  ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
 
@@ -30,9 +29,15 @@ import {
 // =====================================================
 
 interface Account {
+
+  _id?: string;
+
   name: string;
+
   type: string;
+
   balance: number;
+
 }
 
 
@@ -41,7 +46,8 @@ interface Account {
 // =====================================================
 
 interface Transaction {
-  id: number;
+
+  id: string;
 
   type:
     | "income"
@@ -56,6 +62,32 @@ interface Transaction {
   date: string;
 
   accountName: string;
+
+}
+
+
+// =====================================================
+// BACKEND TRANSACTION INTERFACE
+// =====================================================
+
+interface BackendTransaction {
+
+  _id: string;
+
+  type:
+    | "income"
+    | "expense";
+
+  category: string;
+
+  description: string;
+
+  amount: number;
+
+  date: string;
+
+  account: string;
+
 }
 
 
@@ -65,31 +97,81 @@ interface Transaction {
 
 function Dashboard() {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
 
-  // =====================================================
-  // AUTHENTICATION CHECK
-  // =====================================================
+  // ===================================================
+  // ACCOUNTS STATE
+  // ===================================================
+
+  const [
+    accounts,
+    setAccounts,
+  ] = useState<Account[]>([]);
+
+
+  const [
+    accountsLoading,
+    setAccountsLoading,
+  ] = useState(true);
+
+
+  const [
+    accountsError,
+    setAccountsError,
+  ] = useState("");
+
+
+  // ===================================================
+  // TRANSACTIONS STATE
+  // ===================================================
+
+  const [
+    transactions,
+    setTransactions,
+  ] = useState<Transaction[]>([]);
+
+
+  const [
+    transactionsLoading,
+    setTransactionsLoading,
+  ] = useState(true);
+
+
+  // ===================================================
+  // GET TOKEN
+  // ===================================================
+
+  const getToken = () => {
+
+    return (
+
+      localStorage.getItem(
+        "token"
+      )
+
+      ||
+
+      sessionStorage.getItem(
+        "token"
+      )
+
+    );
+
+  };
+
+
+  // ===================================================
+  // AUTH CHECK
+  // ===================================================
 
   useEffect(() => {
 
-    const localToken =
-      localStorage.getItem("token");
+    const token =
+      getToken();
 
-
-    const sessionToken =
-      sessionStorage.getItem("token");
-
-
-    // Check both storage locations
-
-    if (
-
-      !localToken &&
-      !sessionToken
-
-    ) {
+    if (!token) {
 
       navigate(
         "/login",
@@ -103,320 +185,346 @@ function Dashboard() {
   }, [navigate]);
 
 
-  // =====================================================
-  // ACCOUNTS
-  // =====================================================
+  // ===================================================
+  // FETCH ACCOUNTS
+  // ===================================================
 
-  const [accounts, setAccounts] =
-    useState<Account[]>(() => {
+  const fetchAccounts =
+    async () => {
 
-      const savedAccounts =
-        localStorage.getItem(
-          "spendwise_accounts"
+      try {
+
+        setAccountsLoading(
+          true
+        );
+
+        setAccountsError(
+          ""
+        );
+
+        const token =
+          getToken();
+
+        if (!token) {
+
+          navigate(
+            "/login",
+            {
+              replace: true,
+            }
+          );
+
+          return;
+
+        }
+
+        const response =
+          await fetch(
+            "http://localhost:5000/api/accounts",
+            {
+              method:
+                "GET",
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.message ||
+            "Failed to fetch accounts."
+          );
+
+        }
+
+
+        const formattedAccounts =
+          data.accounts.map(
+            (
+              account: Account
+            ) => ({
+
+              ...account,
+
+              type:
+                account.type.toLowerCase(),
+
+            })
+          );
+
+
+        setAccounts(
+          formattedAccounts
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Error fetching accounts:",
+          error
         );
 
 
-      if (savedAccounts) {
+        if (
+          error instanceof Error
+        ) {
 
-        return JSON.parse(
-          savedAccounts
+          setAccountsError(
+            error.message
+          );
+
+        } else {
+
+          setAccountsError(
+            "Unable to fetch accounts."
+          );
+
+        }
+
+      } finally {
+
+        setAccountsLoading(
+          false
         );
 
       }
 
-
-      return [
-
-        {
-          name: "Cash",
-          type: "cash",
-          balance: 5000,
-        },
-
-        {
-          name: "Bank Account",
-          type: "bank",
-          balance: 35420,
-        },
-
-        {
-          name: "Online Wallet",
-          type: "wallet",
-          balance: 12000,
-        },
-
-        {
-          name: "Savings Account",
-          type: "savings",
-          balance: 23000,
-        },
-
-      ];
-
-    });
+    };
 
 
-  // =====================================================
-  // SAVE ACCOUNTS
-  // =====================================================
+  // ===================================================
+  // FETCH TRANSACTIONS
+  // ===================================================
+
+  const fetchTransactions =
+    async () => {
+
+      try {
+
+        setTransactionsLoading(
+          true
+        );
+
+        const token =
+          getToken();
+
+
+        if (!token) {
+
+          navigate(
+            "/login",
+            {
+              replace: true,
+            }
+          );
+
+          return;
+
+        }
+
+
+        const response =
+          await fetch(
+            "http://localhost:5000/api/transactions",
+            {
+              method:
+                "GET",
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.message ||
+            "Failed to fetch transactions."
+          );
+
+        }
+
+
+        const formattedTransactions:
+          Transaction[] =
+
+          data.transactions.map(
+            (
+              transaction:
+                BackendTransaction
+            ) => {
+
+              const account =
+                accounts.find(
+                  (
+                    account
+                  ) =>
+                    account._id ===
+                    transaction.account
+                );
+
+
+              return {
+
+                id:
+                  transaction._id,
+
+                type:
+                  transaction.type,
+
+                category:
+                  transaction.category,
+
+                description:
+                  transaction.description,
+
+                amount:
+                  Number(
+                    transaction.amount
+                  ),
+
+                date:
+                  transaction.date
+                    .split("T")[0],
+
+                accountName:
+                  account?.name ||
+                  "Unknown Account",
+
+              };
+
+            }
+          );
+
+
+        setTransactions(
+          formattedTransactions
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Error fetching transactions:",
+          error
+        );
+
+      } finally {
+
+        setTransactionsLoading(
+          false
+        );
+
+      }
+
+    };
+
+
+  // ===================================================
+  // INITIAL LOAD ACCOUNTS
+  // ===================================================
 
   useEffect(() => {
 
-    localStorage.setItem(
+    fetchAccounts();
 
-      "spendwise_accounts",
-
-      JSON.stringify(
-        accounts
-      )
-
-    );
+  }, []);
 
 
-    window.dispatchEvent(
-
-      new Event(
-        "spendwise_accounts_updated"
-      )
-
-    );
-
-  }, [accounts]);
-
-
-  // =====================================================
-  // TRANSACTIONS
-  // =====================================================
-
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(() => {
-
-      const savedTransactions =
-        localStorage.getItem(
-          "spendwise_transactions"
-        );
-
-
-      if (savedTransactions) {
-
-        return JSON.parse(
-          savedTransactions
-        );
-
-      }
-
-
-      return [
-
-        {
-          id: 1,
-          type: "expense",
-          category: "food",
-          description: "Food & Dining",
-          amount: 250,
-          date: "2026-08-29",
-          accountName: "Cash",
-        },
-
-        {
-          id: 2,
-          type: "expense",
-          category: "transport",
-          description: "Transport",
-          amount: 120,
-          date: "2026-08-29",
-          accountName: "Cash",
-        },
-
-        {
-          id: 3,
-          type: "income",
-          category: "salary",
-          description: "Salary",
-          amount: 35000,
-          date: "2026-08-28",
-          accountName: "Bank Account",
-        },
-
-        {
-          id: 4,
-          type: "expense",
-          category: "shopping",
-          description: "Shopping",
-          amount: 850,
-          date: "2026-08-28",
-          accountName: "Bank Account",
-        },
-
-      ];
-
-    });
-
-
-  // =====================================================
-  // SAVE TRANSACTIONS
-  // =====================================================
+  // ===================================================
+  // FETCH TRANSACTIONS AFTER ACCOUNTS LOAD
+  // ===================================================
 
   useEffect(() => {
 
-    localStorage.setItem(
+    if (
+      accounts.length > 0 ||
+      !accountsLoading
+    ) {
 
-      "spendwise_transactions",
+      fetchTransactions();
 
-      JSON.stringify(
-        transactions
-      )
+    }
 
-    );
-
-
-    window.dispatchEvent(
-
-      new Event(
-        "spendwise_transactions_updated"
-      )
-
-    );
-
-  }, [transactions]);
+  }, [
+    accounts.length,
+    accountsLoading
+  ]);
 
 
-  // =====================================================
-  // UPDATE ACCOUNT BALANCE
-  // =====================================================
-
-  const updateAccountBalance = (
-
-    currentAccounts: Account[],
-
-    transaction: Transaction,
-
-    action:
-      | "add"
-      | "remove"
-
-  ) => {
-
-
-    return currentAccounts.map(
-      (account) => {
-
-
-        if (
-
-          account.name !==
-          transaction.accountName
-
-        ) {
-
-          return account;
-
-        }
-
-
-        let balanceChange =
-          transaction.amount;
-
-
-        // Expense decreases balance
-
-        if (
-
-          transaction.type ===
-          "expense"
-
-        ) {
-
-          balanceChange =
-            -balanceChange;
-
-        }
-
-
-        // Removing reverses transaction
-
-        if (
-
-          action ===
-          "remove"
-
-        ) {
-
-          balanceChange =
-            -balanceChange;
-
-        }
-
-
-        return {
-
-          ...account,
-
-          balance:
-
-            account.balance +
-            balanceChange,
-
-        };
-
-      }
-
-    );
-
-  };
-
-
-  // =====================================================
-  // TOTAL BALANCE
-  // =====================================================
+  // ===================================================
+  // TOTAL MONEY
+  // ===================================================
 
   const totalBalance =
+
     accounts.reduce(
-
-      (total, account) =>
-
+      (
+        total,
+        account
+      ) =>
         total +
-        account.balance,
-
+        Number(
+          account.balance
+        ),
       0
-
     );
 
 
-  // =====================================================
-  // CURRENT DATE
-  // =====================================================
+  // ===================================================
+  // DATE HELPERS
+  // ===================================================
 
   const now =
     new Date();
 
 
-  const getTransactionDate =
-    (dateString: string) => {
+  const getTransactionDate = (
+    dateString: string
+  ) => {
+
+    const parsedDate =
+      new Date(
+        `${dateString}T00:00:00`
+      );
 
 
-      const parsedDate =
-        new Date(
-          `${dateString}T00:00:00`
-        );
+    if (
+      !isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+
+      return parsedDate;
+
+    }
 
 
-      if (
+    return null;
 
-        !isNaN(
-          parsedDate.getTime()
-        )
-
-      ) {
-
-        return parsedDate;
-
-      }
-
-
-      return null;
-
-    };
+  };
 
 
   const currentMonth =
@@ -427,15 +535,16 @@ function Dashboard() {
     now.getFullYear();
 
 
-  // =====================================================
+  // ===================================================
   // CURRENT MONTH TRANSACTIONS
-  // =====================================================
+  // ===================================================
 
   const monthlyTransactions =
+
     transactions.filter(
-
-      (transaction) => {
-
+      (
+        transaction
+      ) => {
 
         const transactionDate =
           getTransactionDate(
@@ -455,84 +564,76 @@ function Dashboard() {
         return (
 
           transactionDate.getMonth() ===
-            currentMonth
+          currentMonth
 
           &&
 
           transactionDate.getFullYear() ===
-            currentYear
+          currentYear
 
         );
 
       }
-
     );
 
 
-  // =====================================================
+  // ===================================================
   // TOTAL INCOME
+  //
+  // Used internally for calculating savings.
+  // Not displayed as a dashboard card.
   // =====================================================
 
   const totalIncome =
+
     monthlyTransactions
-
       .filter(
-
-        (transaction) =>
-
+        (
+          transaction
+        ) =>
           transaction.type ===
           "income"
-
       )
-
       .reduce(
-
         (
           total,
           transaction
         ) =>
-
           total +
           transaction.amount,
-
         0
-
       );
 
 
-  // =====================================================
+  // ===================================================
   // TOTAL EXPENSES
-  // =====================================================
+  // ===================================================
 
   const totalExpenses =
+
     monthlyTransactions
-
       .filter(
-
-        (transaction) =>
-
+        (
+          transaction
+        ) =>
           transaction.type ===
           "expense"
-
       )
-
       .reduce(
-
         (
           total,
           transaction
         ) =>
-
           total +
           transaction.amount,
-
         0
-
       );
 
 
   // =====================================================
-  // SAVINGS
+  // THIS MONTH'S SAVINGS
+  //
+  // Income - Expenses
   // =====================================================
 
   const totalSavings =
@@ -540,27 +641,770 @@ function Dashboard() {
     totalExpenses;
 
 
-  const savingsRate =
+  // ===================================================
+  // ADD TRANSACTION
+  // ===================================================
 
-    totalIncome > 0
+  const handleAddTransaction =
 
-      ? (
+    async (
+      newTransaction:
+        Transaction
+    ): Promise<void> => {
 
-          totalSavings /
-          totalIncome
-
-        ) * 100
-
-      : 0;
+      const token =
+        getToken();
 
 
-  // =====================================================
+      if (!token) {
+
+        throw new Error(
+          "Authentication token not found."
+        );
+
+      }
+
+
+      // ===============================================
+      // FIND SELECTED ACCOUNT
+      // ===============================================
+
+      const selectedAccount =
+
+        accounts.find(
+          (
+            account
+          ) =>
+            account.name ===
+            newTransaction.accountName
+        );
+
+
+      if (
+        !selectedAccount ||
+        !selectedAccount._id
+      ) {
+
+        throw new Error(
+          "Selected account was not found."
+        );
+
+      }
+
+
+      // ===============================================
+      // REQUEST BODY
+      // ===============================================
+
+      const requestBody = {
+
+        type:
+          newTransaction.type,
+
+        category:
+          newTransaction.category,
+
+        description:
+          newTransaction.description,
+
+        amount:
+          Number(
+            newTransaction.amount
+          ),
+
+        date:
+          newTransaction.date,
+
+        account:
+          selectedAccount._id,
+
+      };
+
+
+      console.log(
+        "Sending transaction to backend:",
+        requestBody
+      );
+
+
+      // ===============================================
+      // POST TO BACKEND
+      // ===============================================
+
+      const response =
+        await fetch(
+          "http://localhost:5000/api/transactions",
+          {
+            method:
+              "POST",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(
+                requestBody
+              ),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        console.error(
+          "Backend transaction error:",
+          data
+        );
+
+
+        throw new Error(
+          data.message ||
+          "Failed to add transaction."
+        );
+
+      }
+
+
+      console.log(
+        "Transaction created successfully:",
+        data
+      );
+
+
+      // ===============================================
+      // REFRESH ACCOUNTS
+      // ===============================================
+
+      await fetchAccounts();
+
+
+      // ===============================================
+      // ADD TRANSACTION TO CURRENT STATE
+      // ===============================================
+
+      setTransactions(
+        (
+          currentTransactions
+        ) => [
+
+          {
+            id:
+              data.transaction._id,
+
+            type:
+              data.transaction.type,
+
+            category:
+              data.transaction.category,
+
+            description:
+              data.transaction.description,
+
+            amount:
+              Number(
+                data.transaction.amount
+              ),
+
+            date:
+              data.transaction.date
+                .split("T")[0],
+
+            accountName:
+              selectedAccount.name,
+
+          },
+
+          ...currentTransactions,
+
+        ]
+      );
+
+    };
+
+
+  // ===================================================
+  // EDIT TRANSACTION
+  // ===================================================
+
+  const handleEditTransaction =
+
+    async (
+      oldTransaction:
+        Transaction,
+
+      updatedTransaction:
+        Transaction
+    ): Promise<void> => {
+
+      const token =
+        getToken();
+
+
+      if (!token) {
+
+        throw new Error(
+          "Authentication token not found."
+        );
+
+      }
+
+
+      const selectedAccount =
+
+        accounts.find(
+          (
+            account
+          ) =>
+            account.name ===
+            updatedTransaction.accountName
+        );
+
+
+      if (
+        !selectedAccount ||
+        !selectedAccount._id
+      ) {
+
+        throw new Error(
+          "Selected account was not found."
+        );
+
+      }
+
+
+      const requestBody = {
+
+        type:
+          updatedTransaction.type,
+
+        category:
+          updatedTransaction.category,
+
+        description:
+          updatedTransaction.description,
+
+        amount:
+          Number(
+            updatedTransaction.amount
+          ),
+
+        date:
+          updatedTransaction.date,
+
+        account:
+          selectedAccount._id,
+
+      };
+
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/transactions/${oldTransaction.id}`,
+          {
+            method:
+              "PUT",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(
+                requestBody
+              ),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Failed to update transaction."
+        );
+
+      }
+
+
+      setTransactions(
+        (
+          currentTransactions
+        ) =>
+
+          currentTransactions.map(
+            (
+              transaction
+            ) =>
+
+              transaction.id ===
+              oldTransaction.id
+
+                ?
+
+                  {
+                    ...updatedTransaction,
+
+                    id:
+                      oldTransaction.id,
+                  }
+
+                :
+
+                  transaction
+
+          )
+      );
+
+
+      await fetchAccounts();
+
+    };
+
+
+  // ===================================================
+  // DELETE TRANSACTION
+  // ===================================================
+
+  const handleDeleteTransaction =
+
+    async (
+      transaction:
+        Transaction
+    ): Promise<void> => {
+
+      const token =
+        getToken();
+
+
+      if (!token) {
+
+        throw new Error(
+          "Authentication token not found."
+        );
+
+      }
+
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/transactions/${transaction.id}`,
+          {
+            method:
+              "DELETE",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Failed to delete transaction."
+        );
+
+      }
+
+
+      setTransactions(
+        (
+          currentTransactions
+        ) =>
+
+          currentTransactions.filter(
+            (
+              currentTransaction
+            ) =>
+
+              currentTransaction.id !==
+              transaction.id
+
+          )
+      );
+
+
+      await fetchAccounts();
+
+    };
+
+
+  // ===================================================
+  // ADD ACCOUNT
+  // ===================================================
+
+  const handleAddAccount =
+
+    async (
+      newAccount:
+        Account
+    ): Promise<void> => {
+
+      const token =
+        getToken();
+
+
+      if (!token) {
+
+        navigate(
+          "/login",
+          {
+            replace: true,
+          }
+        );
+
+
+        throw new Error(
+          "Authentication token not found."
+        );
+
+      }
+
+
+      const backendType =
+
+        newAccount.type
+          .charAt(0)
+          .toUpperCase()
+
+        +
+
+        newAccount.type
+          .slice(1)
+          .toLowerCase();
+
+
+      const response =
+        await fetch(
+          "http://localhost:5000/api/accounts",
+          {
+            method:
+              "POST",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                name:
+                  newAccount.name,
+
+                type:
+                  backendType,
+
+                balance:
+                  Number(
+                    newAccount.balance
+                  ),
+              }),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Failed to add account."
+        );
+
+      }
+
+
+      const savedAccount:
+        Account = {
+
+        ...data.account,
+
+        type:
+          data.account.type
+            .toLowerCase(),
+
+      };
+
+
+      setAccounts(
+        (
+          currentAccounts
+        ) => [
+
+          ...currentAccounts,
+
+          savedAccount,
+
+        ]
+      );
+
+    };
+
+
+  // ===================================================
+  // EDIT ACCOUNT
+  // ===================================================
+
+  const handleEditAccount =
+
+    async (
+      oldAccount:
+        Account,
+
+      updatedAccount:
+        Account
+    ): Promise<void> => {
+
+      const token =
+        getToken();
+
+
+      if (
+        !token ||
+        !oldAccount._id
+      ) {
+
+        throw new Error(
+          "Account ID or authentication token not found."
+        );
+
+      }
+
+
+      const backendType =
+
+        updatedAccount.type
+          .charAt(0)
+          .toUpperCase()
+
+        +
+
+        updatedAccount.type
+          .slice(1)
+          .toLowerCase();
+
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/accounts/${oldAccount._id}`,
+          {
+            method:
+              "PUT",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                name:
+                  updatedAccount.name,
+
+                type:
+                  backendType,
+
+                balance:
+                  Number(
+                    updatedAccount.balance
+                  ),
+              }),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Failed to update account."
+        );
+
+      }
+
+
+      const savedAccount:
+        Account = {
+
+        ...data.account,
+
+        type:
+          data.account.type
+            .toLowerCase(),
+
+      };
+
+
+      setAccounts(
+        (
+          currentAccounts
+        ) =>
+
+          currentAccounts.map(
+            (
+              account
+            ) =>
+
+              account._id ===
+              oldAccount._id
+
+                ?
+
+                  savedAccount
+
+                :
+
+                  account
+
+          )
+      );
+
+    };
+
+
+  // ===================================================
+  // DELETE ACCOUNT
+  // ===================================================
+
+  const handleDeleteAccount =
+
+    async (
+      account:
+        Account
+    ): Promise<void> => {
+
+      const token =
+        getToken();
+
+
+      if (
+        !token ||
+        !account._id
+      ) {
+
+        throw new Error(
+          "Account ID or authentication token not found."
+        );
+
+      }
+
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/accounts/${account._id}`,
+          {
+            method:
+              "DELETE",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Failed to delete account."
+        );
+
+      }
+
+
+      setAccounts(
+        (
+          currentAccounts
+        ) =>
+
+          currentAccounts.filter(
+            (
+              currentAccount
+            ) =>
+
+              currentAccount._id !==
+              account._id
+
+          )
+      );
+
+
+      setTransactions(
+        (
+          currentTransactions
+        ) =>
+
+          currentTransactions.filter(
+            (
+              transaction
+            ) =>
+
+              transaction.accountName !==
+              account.name
+
+          )
+      );
+
+    };
+
+
+  // ===================================================
   // RENDER
-  // =====================================================
+  // ===================================================
 
   return (
 
     <main className="dashboard-page">
+
 
       <Sidebar />
 
@@ -568,23 +1412,66 @@ function Dashboard() {
       <section className="dashboard-main">
 
 
-        {/* HEADER */}
-
         <DashboardHeader />
 
 
-        {/* SUMMARY CARDS */}
+        {/* =================================================
+            ERROR
+        ================================================= */}
+
+        {accountsError && (
+
+          <div
+            style={{
+
+              color:
+                "#dc2626",
+
+              backgroundColor:
+                "#fef2f2",
+
+              border:
+                "1px solid #fecaca",
+
+              padding:
+                "12px",
+
+              borderRadius:
+                "8px",
+
+              marginBottom:
+                "20px",
+
+            }}
+          >
+
+            {accountsError}
+
+          </div>
+
+        )}
+
+
+        {/* =================================================
+            SUMMARY
+        ================================================= */}
 
         <section className="summary-grid">
 
 
+          {/* =================================================
+              TOTAL MONEY
+          ================================================= */}
+
           <SummaryCard
 
-            title="Total Balance"
+            title="Total Money"
 
-            value={`₹${totalBalance.toLocaleString(
-              "en-IN"
-            )}`}
+            value={
+              `₹${totalBalance.toLocaleString(
+                "en-IN"
+              )}`
+            }
 
             description="Across all accounts"
 
@@ -599,34 +1486,19 @@ function Dashboard() {
           />
 
 
+          {/* =================================================
+              THIS MONTH'S EXPENSES
+          ================================================= */}
+
           <SummaryCard
 
-            title="Total Income"
+            title="This Month's Expenses"
 
-            value={`₹${totalIncome.toLocaleString(
-              "en-IN"
-            )}`}
-
-            description="This month"
-
-            type="income"
-
-            icon={
-              <ArrowUpRight
-                size={20}
-              />
+            value={
+              `₹${totalExpenses.toLocaleString(
+                "en-IN"
+              )}`
             }
-
-          />
-
-
-          <SummaryCard
-
-            title="Total Expenses"
-
-            value={`₹${totalExpenses.toLocaleString(
-              "en-IN"
-            )}`}
 
             description="This month"
 
@@ -641,19 +1513,21 @@ function Dashboard() {
           />
 
 
+          {/* =================================================
+              THIS MONTH'S SAVINGS
+          ================================================= */}
+
           <SummaryCard
 
             title="This Month's Savings"
 
-            value={`₹${totalSavings.toLocaleString(
-              "en-IN"
-            )}`}
-
-            description={
-              `${savingsRate.toFixed(
-                1
-              )}% savings rate`
+            value={
+              `₹${totalSavings.toLocaleString(
+                "en-IN"
+              )}`
             }
+
+            description="Income minus expenses"
 
             type="savings"
 
@@ -669,7 +1543,9 @@ function Dashboard() {
         </section>
 
 
-        {/* MIDDLE SECTION */}
+        {/* =================================================
+            MIDDLE
+        ================================================= */}
 
         <section className="dashboard-grid">
 
@@ -689,139 +1565,20 @@ function Dashboard() {
               accounts
             }
 
-            setAccounts={
-              setAccounts
+            onAddAccount={
+              handleAddAccount
             }
-
-
-            /* ADD ACCOUNT INITIAL BALANCE TRANSACTION */
 
             onAddTransaction={
-
-              (newTransaction) => {
-
-
-                setTransactions(
-
-                  (currentTransactions) => [
-
-                    newTransaction,
-
-                    ...currentTransactions,
-
-                  ]
-
-                );
-
-              }
-
+              handleAddTransaction
             }
 
-
-            /* EDIT ACCOUNT */
-
             onEditAccount={
+              handleEditAccount
+            }
 
-              (
-                oldAccount,
-                updatedAccount
-              ) => {
-
-
-                const duplicateType =
-                  accounts.some(
-
-                    (account) =>
-
-                      account.type ===
-                        updatedAccount.type
-
-                      &&
-
-                      account.name !==
-                        oldAccount.name
-
-                  );
-
-
-                if (
-                  duplicateType
-                ) {
-
-                  return;
-
-                }
-
-
-                setAccounts(
-
-                  (currentAccounts) =>
-
-                    currentAccounts.map(
-
-                      (account) =>
-
-                        account.name ===
-                        oldAccount.name
-
-                          ? updatedAccount
-
-                          : account
-
-                    )
-
-                );
-
-
-                // UPDATE ACCOUNT NAME IN TRANSACTIONS
-
-                if (
-
-                  oldAccount.name !==
-                  updatedAccount.name
-
-                ) {
-
-
-                  setTransactions(
-
-                    (currentTransactions) =>
-
-                      currentTransactions.map(
-
-                        (transaction) => {
-
-                          if (
-
-                            transaction.accountName ===
-                            oldAccount.name
-
-                          ) {
-
-                            return {
-
-                              ...transaction,
-
-                              accountName:
-                                updatedAccount.name,
-
-                            };
-
-                          }
-
-
-                          return transaction;
-
-                        }
-
-                      )
-
-                  );
-
-                }
-
-              }
-
+            onDeleteAccount={
+              handleDeleteAccount
             }
 
           />
@@ -830,12 +1587,12 @@ function Dashboard() {
         </section>
 
 
-        {/* BOTTOM SECTION */}
+        {/* =================================================
+            BOTTOM
+        ================================================= */}
 
         <section className="bottom-grid">
 
-
-          {/* RECENT TRANSACTIONS */}
 
           <RecentTransactions
 
@@ -846,21 +1603,19 @@ function Dashboard() {
                 .slice()
 
                 .sort(
-
-                  (a, b) =>
+                  (
+                    a,
+                    b
+                  ) =>
 
                     new Date(
-
                       `${b.date}T00:00:00`
-
                     ).getTime()
 
                     -
 
                     new Date(
-
                       `${a.date}T00:00:00`
-
                     ).getTime()
 
                 )
@@ -878,172 +1633,22 @@ function Dashboard() {
             }
 
 
-            // ADD TRANSACTION
-
             onAddTransaction={
-
-              (
-                newTransaction
-              ) => {
-
-
-                setTransactions(
-
-                  (currentTransactions) => [
-
-                    newTransaction,
-
-                    ...currentTransactions,
-
-                  ]
-
-                );
-
-
-                setAccounts(
-
-                  (currentAccounts) =>
-
-                    updateAccountBalance(
-
-                      currentAccounts,
-
-                      newTransaction,
-
-                      "add"
-
-                    )
-
-                );
-
-              }
-
+              handleAddTransaction
             }
 
-
-            // DELETE TRANSACTION
 
             onDeleteTransaction={
-
-              (
-                transaction
-              ) => {
-
-
-                setTransactions(
-
-                  (currentTransactions) =>
-
-                    currentTransactions.filter(
-
-                      (
-                        currentTransaction
-                      ) =>
-
-                        currentTransaction.id !==
-                        transaction.id
-
-                    )
-
-                );
-
-
-                setAccounts(
-
-                  (currentAccounts) =>
-
-                    updateAccountBalance(
-
-                      currentAccounts,
-
-                      transaction,
-
-                      "remove"
-
-                    )
-
-                );
-
-              }
-
+              handleDeleteTransaction
             }
 
 
-            // EDIT TRANSACTION
-
             onEditTransaction={
-
-              (
-
-                oldTransaction,
-
-                updatedTransaction
-
-              ) => {
-
-
-                setTransactions(
-
-                  (currentTransactions) =>
-
-                    currentTransactions.map(
-
-                      (
-                        transaction
-                      ) =>
-
-                        transaction.id ===
-                        oldTransaction.id
-
-                          ? updatedTransaction
-
-                          : transaction
-
-                    )
-
-                );
-
-
-                setAccounts(
-
-                  (currentAccounts) => {
-
-
-                    const accountsWithoutOldEffect =
-
-                      updateAccountBalance(
-
-                        currentAccounts,
-
-                        oldTransaction,
-
-                        "remove"
-
-                      );
-
-
-                    return updateAccountBalance(
-
-                      accountsWithoutOldEffect,
-
-                      updatedTransaction,
-
-                      "add"
-
-                    );
-
-                  }
-
-                );
-
-              }
-
+              handleEditTransaction
             }
 
           />
 
-
-          {/* MONTHLY BUDGET */}
 
           <BudgetCard
 
@@ -1057,8 +1662,43 @@ function Dashboard() {
         </section>
 
 
-      </section>
+        {/* =================================================
+            HIDDEN LOADING STATES
+        ================================================= */}
 
+        {accountsLoading && (
+
+          <p
+            style={{
+              display:
+                "none",
+            }}
+          >
+
+            Loading accounts...
+
+          </p>
+
+        )}
+
+
+        {transactionsLoading && (
+
+          <p
+            style={{
+              display:
+                "none",
+            }}
+          >
+
+            Loading transactions...
+
+          </p>
+
+        )}
+
+
+      </section>
 
     </main>
 

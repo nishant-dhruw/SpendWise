@@ -14,12 +14,20 @@ import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Reports from "./pages/Reports";
 import YearReport from "./pages/YearReport";
+import Settings from "./pages/Settings";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+
 
 function App() {
+
   return (
+
     <BrowserRouter>
 
       <Routes>
+
+        {/* DEFAULT ROUTE */}
 
         <Route
           path="/"
@@ -31,6 +39,9 @@ function App() {
           }
         />
 
+
+        {/* PUBLIC ROUTES */}
+
         <Route
           path="/login"
           element={<Login />}
@@ -41,45 +52,59 @@ function App() {
           element={<Register />}
         />
 
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
 
-        <Route
-          path="/accounts"
-          element={<Accounts />}
-        />
+        {/* PROTECTED ROUTES */}
 
-        <Route
-          path="/transactions"
-          element={<Transactions />}
-        />
+        <Route element={<ProtectedRoute />}>
 
-        <Route
-          path="/budgets"
-          element={<Budgets />}
-        />
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
 
-        <Route
-          path="/goals"
-          element={<Goals />}
-        />
+          <Route
+            path="/accounts"
+            element={<Accounts />}
+          />
 
-        <Route
-          path="/reports"
-          element={<Reports />}
-        />
+          <Route
+            path="/transactions"
+            element={<Transactions />}
+          />
 
-        <Route
-          path="/reports/:year"
-          element={<YearReport />}
-        />
+          <Route
+            path="/budgets"
+            element={<Budgets />}
+          />
+
+          <Route
+            path="/goals"
+            element={<Goals />}
+          />
+
+          <Route
+            path="/reports"
+            element={<Reports />}
+          />
+
+          <Route
+            path="/reports/:year"
+            element={<YearReport />}
+          />
+
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
+
+        </Route>
 
       </Routes>
 
     </BrowserRouter>
+
   );
 }
+
 
 export default App;

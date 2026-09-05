@@ -271,3 +271,410 @@
   color: #0f766e;
   transform: scale(1.08);
 }
+
+/* =====================================================
+   SPENDWISE ERROR MODAL
+===================================================== */
+
+.spendwise-error-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 23, 42, 0.58);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  z-index: 9999;
+
+  animation: spendwiseErrorFadeIn 0.2s ease;
+}
+
+
+/* =====================================================
+   ERROR MODAL
+===================================================== */
+
+.spendwise-error-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 440px;
+
+  padding: 32px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.18),
+    0 8px 24px rgba(15, 23, 42, 0.08);
+
+  text-align: center;
+
+  animation: spendwiseErrorSlideUp 0.25s ease;
+}
+
+
+/* =====================================================
+   CLOSE BUTTON
+===================================================== */
+
+.spendwise-error-close {
+  position: absolute;
+
+  top: 16px;
+  right: 16px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.spendwise-error-close:hover {
+  background: #f1f5f9;
+
+  color: #1f2937;
+
+  transform: rotate(5deg);
+}
+
+
+/* =====================================================
+   WARNING ICON
+===================================================== */
+
+.spendwise-error-icon {
+  width: 68px;
+  height: 68px;
+
+  margin: 0 auto 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #fff7ed;
+
+  color: #f59e0b;
+
+  box-shadow:
+    inset 0 0 0 1px #fed7aa;
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.spendwise-error-modal h2 {
+  margin: 0 0 10px;
+
+  color: #111827;
+
+  font-size: 22px;
+
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  letter-spacing: -0.02em;
+}
+
+
+/* =====================================================
+   ERROR MESSAGE
+===================================================== */
+
+.spendwise-error-message {
+  max-width: 370px;
+
+  margin: 0 auto;
+
+  color: #64748b;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+
+/* =====================================================
+   HELP BOX
+===================================================== */
+
+.spendwise-error-help {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 12px;
+
+  margin-top: 22px;
+
+  padding: 15px;
+
+  text-align: left;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 14px;
+}
+
+
+/* =====================================================
+   HELP ICON
+===================================================== */
+
+.spendwise-error-help-icon {
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #ecfdf5;
+
+  color: #10b981;
+}
+
+
+/* =====================================================
+   HELP CONTENT
+===================================================== */
+
+.spendwise-error-help > div:last-child {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding-top: 1px;
+}
+
+
+.spendwise-error-help strong {
+  color: #1f2937;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+.spendwise-error-help span {
+  color: #64748b;
+
+  font-size: 12px;
+
+  line-height: 1.55;
+}
+
+
+/* =====================================================
+   ACTION BUTTONS
+===================================================== */
+
+.spendwise-error-actions {
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: 24px;
+}
+
+
+/* =====================================================
+   COMMON BUTTON
+===================================================== */
+
+.spendwise-error-actions button {
+  min-height: 46px;
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 16px;
+
+  border-radius: 12px;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* =====================================================
+   CLOSE BUTTON
+===================================================== */
+
+.spendwise-error-secondary {
+  border: 1px solid #e2e8f0;
+
+  background: #ffffff;
+
+  color: #475569;
+}
+
+.spendwise-error-secondary:hover {
+  background: #f8fafc;
+
+  transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   VIEW TRANSACTIONS BUTTON
+===================================================== */
+
+.spendwise-error-primary {
+  border: none;
+
+  background: #10b981;
+
+  color: #ffffff;
+
+  box-shadow:
+    0 6px 16px rgba(16, 185, 129, 0.22);
+}
+
+.spendwise-error-primary:hover {
+  background: #059669;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 20px rgba(16, 185, 129, 0.28);
+}
+
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+
+@keyframes spendwiseErrorFadeIn {
+
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+
+}
+
+
+@keyframes spendwiseErrorSlideUp {
+
+  from {
+    opacity: 0;
+    transform:
+      translateY(12px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE RESPONSIVE
+===================================================== */
+
+@media (max-width: 520px) {
+
+  .spendwise-error-overlay {
+    padding: 16px;
+  }
+
+
+  .spendwise-error-modal {
+    max-width: 100%;
+
+    padding: 28px 20px;
+
+    border-radius: 20px;
+  }
+
+
+  .spendwise-error-icon {
+    width: 60px;
+    height: 60px;
+
+    border-radius: 17px;
+  }
+
+
+  .spendwise-error-modal h2 {
+    font-size: 20px;
+  }
+
+
+  .spendwise-error-actions {
+    flex-direction: column-reverse;
+  }
+
+
+  .spendwise-error-actions button {
+    width: 100%;
+  }
+
+}

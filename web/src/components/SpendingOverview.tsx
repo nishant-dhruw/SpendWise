@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./SpendingOverview.css";
 
 interface Transaction {
-  id: number;
+  id: string;
   type: "income" | "expense";
   category: string;
   description: string;
@@ -34,14 +34,39 @@ function SpendingOverview({
   // CONVERT TRANSACTION DATE
   // =====================================================
 
-  const getTransactionDate = (dateString: string) => {
+  const getTransactionDate = (
+    dateString: string
+  ) => {
 
-    const parsedDate = new Date(dateString);
-
-    if (!isNaN(parsedDate.getTime())) {
-      return parsedDate;
+    if (!dateString) {
+      return null;
     }
 
+    // Backend sends YYYY-MM-DD
+    // Create local date to avoid timezone problems.
+    const dateOnly = dateString.split("T")[0];
+
+    const parts = dateOnly.split("-");
+
+    if (parts.length === 3) {
+
+      const year = Number(parts[0]);
+      const month = Number(parts[1]) - 1;
+      const day = Number(parts[2]);
+
+      const localDate = new Date(
+        year,
+        month,
+        day
+      );
+
+      if (!isNaN(localDate.getTime())) {
+        return localDate;
+      }
+
+    }
+
+    // Support older local-storage style dates
     if (dateString.startsWith("Today")) {
       return new Date();
     }
@@ -57,6 +82,13 @@ function SpendingOverview({
       return yesterday;
     }
 
+    const parsedDate =
+      new Date(dateString);
+
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+
     return null;
   };
 
@@ -69,7 +101,9 @@ function SpendingOverview({
     transactions.filter((transaction) => {
 
       const transactionDate =
-        getTransactionDate(transaction.date);
+        getTransactionDate(
+          transaction.date
+        );
 
       if (!transactionDate) {
         return false;
@@ -82,32 +116,42 @@ function SpendingOverview({
         now.getMonth();
 
 
-      // ================= THIS MONTH =================
+      // =================================================
+      // THIS MONTH
+      // =================================================
 
       if (selectedPeriod === "This month") {
 
         return (
-          transactionDate.getMonth() === currentMonth &&
-          transactionDate.getFullYear() === currentYear
+          transactionDate.getMonth() ===
+            currentMonth &&
+          transactionDate.getFullYear() ===
+            currentYear
         );
 
       }
 
 
-      // ================= THIS WEEK =================
+      // =================================================
+      // THIS WEEK
+      // =================================================
 
       if (selectedPeriod === "This week") {
 
-        const startOfWeek = new Date(now);
+        const startOfWeek =
+          new Date(now);
 
         const day =
           startOfWeek.getDay();
 
         const difference =
-          day === 0 ? -6 : 1 - day;
+          day === 0
+            ? -6
+            : 1 - day;
 
         startOfWeek.setDate(
-          startOfWeek.getDate() + difference
+          startOfWeek.getDate() +
+            difference
         );
 
         startOfWeek.setHours(
@@ -122,21 +166,29 @@ function SpendingOverview({
           new Date(startOfWeek);
 
         endOfWeek.setDate(
-          endOfWeek.getDate() + 7
+          endOfWeek.getDate() +
+            7
         );
 
 
         return (
-          transactionDate >= startOfWeek &&
-          transactionDate < endOfWeek
+          transactionDate >=
+            startOfWeek &&
+          transactionDate <
+            endOfWeek
         );
 
       }
 
 
-      // ================= LAST MONTH =================
+      // =================================================
+      // LAST MONTH
+      // =================================================
 
-      if (selectedPeriod === "Last month") {
+      if (
+        selectedPeriod ===
+        "Last month"
+      ) {
 
         const lastMonth =
           new Date(
@@ -155,35 +207,47 @@ function SpendingOverview({
       }
 
 
-      // ================= LAST 3 MONTHS =================
+      // =================================================
+      // LAST 3 MONTHS
+      // =================================================
 
-      if (selectedPeriod === "Last 3 months") {
+      if (
+        selectedPeriod ===
+        "Last 3 months"
+      ) {
 
-        const threeMonthsAgo =
-          new Date(now);
+        const startDate =
+          new Date(
+            currentYear,
+            currentMonth - 2,
+            1
+          );
 
-        threeMonthsAgo.setMonth(
-          now.getMonth() - 3
-        );
-
-        threeMonthsAgo.setHours(
-          0,
-          0,
-          0,
-          0
-        );
+        const endDate =
+          new Date(
+            currentYear,
+            currentMonth + 1,
+            1
+          );
 
         return (
-          transactionDate >= threeMonthsAgo &&
-          transactionDate <= now
+          transactionDate >=
+            startDate &&
+          transactionDate <
+            endDate
         );
 
       }
 
 
-      // ================= THIS YEAR =================
+      // =================================================
+      // THIS YEAR
+      // =================================================
 
-      if (selectedPeriod === "This year") {
+      if (
+        selectedPeriod ===
+        "This year"
+      ) {
 
         return (
           transactionDate.getFullYear() ===
@@ -206,28 +270,38 @@ function SpendingOverview({
     filteredTransactions
       .filter(
         (transaction) =>
-          transaction.type === "income"
+          transaction.type ===
+          "income"
       )
       .reduce(
-        (total, transaction) =>
-          total + transaction.amount,
+        (
+          total,
+          transaction
+        ) =>
+          total +
+          transaction.amount,
         0
       );
 
 
   // =====================================================
-  // TOTAL EXPENSE
+  // TOTAL EXPENSES
   // =====================================================
 
   const totalExpenses =
     filteredTransactions
       .filter(
         (transaction) =>
-          transaction.type === "expense"
+          transaction.type ===
+          "expense"
       )
       .reduce(
-        (total, transaction) =>
-          total + transaction.amount,
+        (
+          total,
+          transaction
+        ) =>
+          total +
+          transaction.amount,
         0
       );
 
@@ -242,7 +316,10 @@ function SpendingOverview({
     // THIS WEEK
     // ===================================================
 
-    if (selectedPeriod === "This week") {
+    if (
+      selectedPeriod ===
+      "This week"
+    ) {
 
       const days = [
         "Mon",
@@ -255,65 +332,79 @@ function SpendingOverview({
       ];
 
 
-      return days.map((day, index) => {
+      return days.map(
+        (
+          day,
+          index
+        ) => {
 
-        let income = 0;
-        let expense = 0;
-
-
-        filteredTransactions.forEach(
-          (transaction) => {
-
-            const date =
-              getTransactionDate(
-                transaction.date
-              );
-
-            if (!date) return;
+          let income = 0;
+          let expense = 0;
 
 
-            const dayOfWeek =
-              date.getDay();
+          filteredTransactions.forEach(
+            (transaction) => {
 
-            const convertedDay =
-              dayOfWeek === 0
-                ? 6
-                : dayOfWeek - 1;
+              const date =
+                getTransactionDate(
+                  transaction.date
+                );
+
+              if (!date) {
+                return;
+              }
 
 
-            if (
-              convertedDay === index
-            ) {
+              const dayOfWeek =
+                date.getDay();
+
+              const convertedDay =
+                dayOfWeek === 0
+                  ? 6
+                  : dayOfWeek - 1;
+
+
+              if (
+                convertedDay !==
+                index
+              ) {
+                return;
+              }
+
 
               if (
                 transaction.type ===
                 "income"
               ) {
+
                 income +=
                   transaction.amount;
+
               }
+
 
               if (
                 transaction.type ===
                 "expense"
               ) {
+
                 expense +=
                   transaction.amount;
+
               }
 
             }
-
-          }
-        );
+          );
 
 
-        return {
-          label: day,
-          income,
-          expense,
-        };
+          return {
+            label: day,
+            income,
+            expense,
+          };
 
-      });
+        }
+      );
 
     }
 
@@ -323,24 +414,32 @@ function SpendingOverview({
     // ===================================================
 
     if (
-      selectedPeriod === "This month" ||
-      selectedPeriod === "Last month"
+      selectedPeriod ===
+        "This month" ||
+      selectedPeriod ===
+        "Last month"
     ) {
 
-      const year =
-        selectedPeriod === "This month"
-          ? now.getFullYear()
-          : now.getMonth() === 0
-            ? now.getFullYear() - 1
-            : now.getFullYear();
+      const targetDate =
+        selectedPeriod ===
+        "This month"
+          ? new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              1
+            )
+          : new Date(
+              now.getFullYear(),
+              now.getMonth() - 1,
+              1
+            );
 
+
+      const year =
+        targetDate.getFullYear();
 
       const month =
-        selectedPeriod === "This month"
-          ? now.getMonth()
-          : now.getMonth() === 0
-            ? 11
-            : now.getMonth() - 1;
+        targetDate.getMonth();
 
 
       const daysInMonth =
@@ -352,10 +451,13 @@ function SpendingOverview({
 
 
       const numberOfWeeks =
-        Math.ceil(daysInMonth / 7);
+        Math.ceil(
+          daysInMonth / 7
+        );
 
 
-      const weeks: ChartPoint[] = [];
+      const weeks: ChartPoint[] =
+        [];
 
 
       for (
@@ -368,6 +470,16 @@ function SpendingOverview({
         let expense = 0;
 
 
+        const startDay =
+          week * 7 + 1;
+
+        const endDay =
+          Math.min(
+            startDay + 6,
+            daysInMonth
+          );
+
+
         filteredTransactions.forEach(
           (transaction) => {
 
@@ -376,40 +488,55 @@ function SpendingOverview({
                 transaction.date
               );
 
-            if (!date) return;
-
-
-            if (
-              date.getFullYear() !== year ||
-              date.getMonth() !== month
-            ) {
+            if (!date) {
               return;
             }
 
 
-            const weekNumber =
-              Math.floor(
-                (date.getDate() - 1) / 7
-              );
+            if (
+              date.getFullYear() !==
+                year ||
+              date.getMonth() !==
+                month
+            ) {
+
+              return;
+
+            }
 
 
-            if (weekNumber === week) {
+            const day =
+              date.getDate();
 
-              if (
-                transaction.type ===
-                "income"
-              ) {
-                income +=
-                  transaction.amount;
-              }
 
-              if (
-                transaction.type ===
-                "expense"
-              ) {
-                expense +=
-                  transaction.amount;
-              }
+            if (
+              day < startDay ||
+              day > endDay
+            ) {
+
+              return;
+
+            }
+
+
+            if (
+              transaction.type ===
+              "income"
+            ) {
+
+              income +=
+                transaction.amount;
+
+            }
+
+
+            if (
+              transaction.type ===
+              "expense"
+            ) {
+
+              expense +=
+                transaction.amount;
 
             }
 
@@ -418,9 +545,14 @@ function SpendingOverview({
 
 
         weeks.push({
-          label: `Week ${week + 1}`,
+
+          label:
+            `Week ${week + 1}`,
+
           income,
+
           expense,
+
         });
 
       }
@@ -440,7 +572,8 @@ function SpendingOverview({
       "Last 3 months"
     ) {
 
-      const result: ChartPoint[] = [];
+      const result:
+        ChartPoint[] = [];
 
 
       for (
@@ -476,31 +609,41 @@ function SpendingOverview({
                 transaction.date
               );
 
-            if (!transactionDate) return;
+            if (!transactionDate) {
+              return;
+            }
 
 
             if (
-              transactionDate.getMonth() ===
-                month &&
-              transactionDate.getFullYear() ===
+              transactionDate.getMonth() !==
+                month ||
+              transactionDate.getFullYear() !==
                 year
             ) {
 
-              if (
-                transaction.type ===
-                "income"
-              ) {
-                income +=
-                  transaction.amount;
-              }
+              return;
 
-              if (
-                transaction.type ===
-                "expense"
-              ) {
-                expense +=
-                  transaction.amount;
-              }
+            }
+
+
+            if (
+              transaction.type ===
+              "income"
+            ) {
+
+              income +=
+                transaction.amount;
+
+            }
+
+
+            if (
+              transaction.type ===
+              "expense"
+            ) {
+
+              expense +=
+                transaction.amount;
 
             }
 
@@ -509,13 +652,19 @@ function SpendingOverview({
 
 
         result.push({
+
           label:
             date.toLocaleString(
               "en-IN",
-              { month: "short" }
+              {
+                month: "short",
+              }
             ),
+
           income,
+
           expense,
+
         });
 
       }
@@ -531,10 +680,12 @@ function SpendingOverview({
     // ===================================================
 
     if (
-      selectedPeriod === "This year"
+      selectedPeriod ===
+      "This year"
     ) {
 
-      const result: ChartPoint[] = [];
+      const result:
+        ChartPoint[] = [];
 
 
       for (
@@ -555,30 +706,41 @@ function SpendingOverview({
                 transaction.date
               );
 
-            if (!date) return;
+            if (!date) {
+              return;
+            }
 
 
             if (
-              date.getMonth() === month &&
-              date.getFullYear() ===
+              date.getMonth() !==
+                month ||
+              date.getFullYear() !==
                 now.getFullYear()
             ) {
 
-              if (
-                transaction.type ===
-                "income"
-              ) {
-                income +=
-                  transaction.amount;
-              }
+              return;
 
-              if (
-                transaction.type ===
-                "expense"
-              ) {
-                expense +=
-                  transaction.amount;
-              }
+            }
+
+
+            if (
+              transaction.type ===
+              "income"
+            ) {
+
+              income +=
+                transaction.amount;
+
+            }
+
+
+            if (
+              transaction.type ===
+              "expense"
+            ) {
+
+              expense +=
+                transaction.amount;
 
             }
 
@@ -587,6 +749,7 @@ function SpendingOverview({
 
 
         result.push({
+
           label:
             new Date(
               now.getFullYear(),
@@ -594,10 +757,15 @@ function SpendingOverview({
               1
             ).toLocaleString(
               "en-IN",
-              { month: "short" }
+              {
+                month: "short",
+              }
             ),
+
           income,
+
           expense,
+
         });
 
       }
@@ -630,27 +798,33 @@ function SpendingOverview({
   const paddingBottom = 20;
 
 
-  // Find maximum value
+  // =====================================================
+  // FIND MAXIMUM VALUE
+  // =====================================================
 
-  const maxValue = Math.max(
-    ...chartData.map(
-      (point) =>
-        Math.max(
-          point.income,
-          point.expense
-        )
-    ),
-    0
-  );
+  const maxValue =
+    Math.max(
+      ...chartData.map(
+        (point) =>
+          Math.max(
+            point.income,
+            point.expense
+          )
+      ),
+      0
+    );
 
 
-  // Make the graph scale nicely
+  // =====================================================
+  // GRAPH SCALE
+  // =====================================================
 
   const chartMax =
     maxValue === 0
       ? 1000
       : Math.ceil(
-          maxValue * 1.2 / 1000
+          (maxValue * 1.2) /
+            1000
         ) * 1000;
 
 
@@ -658,33 +832,48 @@ function SpendingOverview({
   // CONVERT DATA TO SVG POINTS
   // =====================================================
 
-  const getX = (index: number) => {
+  const getX = (
+    index: number
+  ) => {
 
-    if (chartData.length === 1) {
+    if (
+      chartData.length === 1
+    ) {
+
       return chartWidth / 2;
+
     }
+
 
     return (
       paddingLeft +
       (index /
         (chartData.length - 1)) *
-        (chartWidth -
+        (
+          chartWidth -
           paddingLeft -
-          paddingRight)
+          paddingRight
+        )
     );
 
   };
 
 
-  const getY = (value: number) => {
+  const getY = (
+    value: number
+  ) => {
 
     return (
       paddingTop +
-      (1 -
-        value / chartMax) *
-        (chartHeight -
+      (
+        1 -
+        value / chartMax
+      ) *
+        (
+          chartHeight -
           paddingTop -
-          paddingBottom)
+          paddingBottom
+        )
     );
 
   };
@@ -693,7 +882,10 @@ function SpendingOverview({
   const incomePoints =
     chartData
       .map(
-        (point, index) =>
+        (
+          point,
+          index
+        ) =>
           `${getX(index)},${getY(
             point.income
           )}`
@@ -704,7 +896,10 @@ function SpendingOverview({
   const expensePoints =
     chartData
       .map(
-        (point, index) =>
+        (
+          point,
+          index
+        ) =>
           `${getX(index)},${getY(
             point.expense
           )}`
@@ -729,31 +924,52 @@ function SpendingOverview({
     value: number
   ) => {
 
-    if (value >= 100000) {
+    if (
+      value >= 100000
+    ) {
+
       return `₹${(
         value / 100000
       ).toFixed(1)}L`;
+
     }
 
-    if (value >= 1000) {
+
+    if (
+      value >= 1000
+    ) {
+
       return `₹${(
         value / 1000
       ).toFixed(0)}k`;
+
     }
 
-    return `₹${Math.round(value)}`;
+
+    return `₹${Math.round(
+      value
+    )}`;
 
   };
 
 
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
-    <article className="spending-overview-card">
+
+    <article
+      className="spending-overview-card"
+    >
 
       {/* =================================================
           HEADER
       ================================================= */}
 
-      <div className="spending-overview-header">
+      <div
+        className="spending-overview-header"
+      >
 
         <div>
 
@@ -761,31 +977,56 @@ function SpendingOverview({
             Spending Overview
           </h3>
 
+
           <p>
             Income and expenses for{" "}
             {selectedPeriod.toLowerCase()}
           </p>
 
-          <div className="spending-summary">
 
-            <span className="summary-income">
+          <div
+            className="spending-summary"
+          >
+
+            <span
+              className="summary-income"
+            >
+
               Income:{" "}
+
               <strong>
-                ₹{totalIncome.toLocaleString("en-IN")}
+                ₹
+                {totalIncome.toLocaleString(
+                  "en-IN"
+                )}
               </strong>
+
             </span>
 
-            <span className="summary-expense">
+
+            <span
+              className="summary-expense"
+            >
+
               Expenses:{" "}
+
               <strong>
-                ₹{totalExpenses.toLocaleString("en-IN")}
+                ₹
+                {totalExpenses.toLocaleString(
+                  "en-IN"
+                )}
               </strong>
+
             </span>
 
           </div>
 
         </div>
 
+
+        {/* =================================================
+            PERIOD SELECTOR
+        ================================================= */}
 
         <select
           className="spending-period"
@@ -826,15 +1067,30 @@ function SpendingOverview({
           CHART
       ================================================= */}
 
-      <div className="spending-chart">
+      <div
+        className="spending-chart"
+      >
 
-        <div className="chart-y-axis">
+        {/* =================================================
+            Y AXIS
+        ================================================= */}
+
+        <div
+          className="chart-y-axis"
+        >
 
           {yAxisValues.map(
-            (value, index) => (
+            (
+              value,
+              index
+            ) => (
 
-              <span key={index}>
-                {formatAmount(value)}
+              <span
+                key={index}
+              >
+                {formatAmount(
+                  value
+                )}
               </span>
 
             )
@@ -843,20 +1099,41 @@ function SpendingOverview({
         </div>
 
 
-        <div className="chart-area">
+        {/* =================================================
+            CHART AREA
+        ================================================= */}
 
-          <div className="chart-grid-lines">
+        <div
+          className="chart-area"
+        >
+
+          {/* =================================================
+              GRID
+          ================================================= */}
+
+          <div
+            className="chart-grid-lines"
+          >
 
             {yAxisValues.map(
-              (_, index) => (
+              (
+                _,
+                index
+              ) => (
+
                 <span
                   key={index}
                 />
+
               )
             )}
 
           </div>
 
+
+          {/* =================================================
+              SVG
+          ================================================= */}
 
           <svg
             className="chart-svg"
@@ -864,10 +1141,14 @@ function SpendingOverview({
             preserveAspectRatio="none"
           >
 
-            {/* Income */}
+            {/* =============================================
+                INCOME LINE
+            ============================================= */}
 
             <polyline
-              points={incomePoints}
+              points={
+                incomePoints
+              }
               fill="none"
               stroke="#10b981"
               strokeWidth="3"
@@ -876,10 +1157,14 @@ function SpendingOverview({
             />
 
 
-            {/* Expenses */}
+            {/* =============================================
+                EXPENSE LINE
+            ============================================= */}
 
             <polyline
-              points={expensePoints}
+              points={
+                expensePoints
+              }
               fill="none"
               stroke="#f59e0b"
               strokeWidth="3"
@@ -888,15 +1173,22 @@ function SpendingOverview({
             />
 
 
-            {/* Income dots */}
+            {/* =============================================
+                INCOME DOTS
+            ============================================= */}
 
             {chartData.map(
-              (point, index) => (
+              (
+                point,
+                index
+              ) => (
 
                 <circle
                   key={`income-${index}`}
                   cx={getX(index)}
-                  cy={getY(point.income)}
+                  cy={getY(
+                    point.income
+                  )}
                   r="4"
                   fill="#10b981"
                 />
@@ -905,15 +1197,22 @@ function SpendingOverview({
             )}
 
 
-            {/* Expense dots */}
+            {/* =============================================
+                EXPENSE DOTS
+            ============================================= */}
 
             {chartData.map(
-              (point, index) => (
+              (
+                point,
+                index
+              ) => (
 
                 <circle
                   key={`expense-${index}`}
                   cx={getX(index)}
-                  cy={getY(point.expense)}
+                  cy={getY(
+                    point.expense
+                  )}
                   r="4"
                   fill="#f59e0b"
                 />
@@ -924,12 +1223,19 @@ function SpendingOverview({
           </svg>
 
 
-          {/* X Axis */}
+          {/* =================================================
+              X AXIS
+          ================================================= */}
 
-          <div className="chart-months">
+          <div
+            className="chart-months"
+          >
 
             {chartData.map(
-              (point, index) => (
+              (
+                point,
+                index
+              ) => (
 
                 <span
                   key={index}
@@ -943,12 +1249,16 @@ function SpendingOverview({
           </div>
 
 
-          {/* Empty state */}
+          {/* =================================================
+              EMPTY STATE
+          ================================================= */}
 
           {filteredTransactions.length ===
             0 && (
 
-            <div className="chart-empty-state">
+            <div
+              className="chart-empty-state"
+            >
 
               <span>
                 No transactions for this period
@@ -967,11 +1277,15 @@ function SpendingOverview({
           LEGEND
       ================================================= */}
 
-      <div className="chart-legend">
+      <div
+        className="chart-legend"
+      >
 
         <span>
 
-          <i className="legend-income"></i>
+          <i
+            className="legend-income"
+          />
 
           Income
 
@@ -980,7 +1294,9 @@ function SpendingOverview({
 
         <span>
 
-          <i className="legend-expense"></i>
+          <i
+            className="legend-expense"
+          />
 
           Expenses
 
@@ -989,7 +1305,9 @@ function SpendingOverview({
       </div>
 
     </article>
+
   );
+
 }
 
 export default SpendingOverview;

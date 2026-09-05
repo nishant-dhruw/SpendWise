@@ -4,10 +4,13 @@
 
 .dashboard-sidebar {
   width: 235px;
-
   flex-shrink: 0;
 
+  height: 100vh;
   min-height: 100vh;
+
+  position: sticky;
+  top: 0;
 
   display: flex;
   flex-direction: column;
@@ -15,8 +18,11 @@
   padding: 24px 16px;
 
   background: #ffffff;
-
   border-right: 1px solid #e8efec;
+
+  box-sizing: border-box;
+
+  overflow-y: auto;
 }
 
 
@@ -27,7 +33,6 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
-
   gap: 10px;
 
   padding: 3px 8px 25px;
@@ -43,17 +48,18 @@
 
   color: white;
 
-  background:
-    linear-gradient(
-      145deg,
-      #16c784,
-      #059669
-    );
+  background: linear-gradient(
+    145deg,
+    #16c784,
+    #059669
+  );
 
   border-radius: 12px;
 
   box-shadow:
     0 8px 18px rgba(16, 185, 129, 0.18);
+
+  flex-shrink: 0;
 }
 
 .sidebar-brand h1 {
@@ -110,15 +116,12 @@
   gap: 11px;
 
   padding: 10px 12px;
-
   margin-bottom: 4px;
 
   color: #64748b;
-
   background: transparent;
 
   border: none;
-
   border-radius: 9px;
 
   font-size: 12px;
@@ -129,19 +132,17 @@
   cursor: pointer;
 
   transition:
-  background 0.2s ease,
-  color 0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .nav-item:hover {
   color: #059669;
-
   background: #f0faf6;
 }
 
 .nav-item.active {
   color: #059669;
-
   background: #eaf9f3;
 
   font-weight: 750;
@@ -163,11 +164,9 @@
   padding: 11px 12px;
 
   color: #64748b;
-
   background: transparent;
 
   border: none;
-
   border-top: 1px solid #edf2ef;
 
   font-size: 12px;
@@ -176,7 +175,7 @@
 
   cursor: pointer;
 
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 }
 
 .logout-button:hover {
@@ -189,21 +188,24 @@
 ========================================================= */
 
 @media (max-width: 750px) {
-
   .dashboard-sidebar {
     width: 100%;
 
+    height: auto;
     min-height: auto;
+
+    position: relative;
+    top: auto;
 
     padding: 14px 16px;
 
     flex-direction: row;
-
     align-items: center;
 
     border-right: none;
-
     border-bottom: 1px solid #e8efec;
+
+    overflow: visible;
   }
 
   .sidebar-brand {

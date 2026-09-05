@@ -1,29 +1,67 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+import {
+  useState,
+} from "react";
+
+import {
+  X,
+} from "lucide-react";
 
 import "./AddAccountModal.css";
 
 
+// =====================================================
+// ACCOUNT INTERFACE
+// =====================================================
+
 interface Account {
+
+  _id?: string;
+
   name: string;
+
   type: string;
+
   balance: number;
+
 }
 
+
+// =====================================================
+// PROPS
+// =====================================================
 
 interface EditAccountModalProps {
-  account: Account;
 
-  accounts: Account[];
+  account:
+    Account;
 
-  onClose: () => void;
 
-  onEditAccount: (
-    oldAccount: Account,
-    updatedAccount: Account
-  ) => void;
+  accounts:
+    Account[];
+
+
+  onClose:
+    () => void;
+
+
+  // ===============================================
+  // SEND ONLY UPDATED ACCOUNT
+  //
+  // AccountsCard already knows the old account
+  // ===============================================
+
+  onEditAccount:
+
+    (
+      updatedAccount: Account
+    ) => Promise<void>;
+
 }
 
+
+// =====================================================
+// COMPONENT
+// =====================================================
 
 function EditAccountModal({
 
@@ -38,201 +76,317 @@ function EditAccountModal({
 }: EditAccountModalProps) {
 
 
-  // =========================================
+  // =====================================================
   // FORM STATES
-  // =========================================
+  // =====================================================
 
   const [
+
     accountName,
+
     setAccountName,
+
   ] = useState(
+
     account.name
+
   );
 
 
   const [
+
     accountType,
+
     setAccountType,
+
   ] = useState(
+
     account.type
+
   );
 
 
   const [
+
     balance,
+
     setBalance,
+
   ] = useState(
+
     account.balance.toString()
+
   );
 
 
   const [
+
     error,
+
     setError,
-  ] = useState("");
+
+  ] = useState(
+    ""
+  );
 
 
-  // =========================================
+  const [
+
+    isSaving,
+
+    setIsSaving,
+
+  ] = useState(
+    false
+  );
+
+
+  // =====================================================
   // SUBMIT
-  // =========================================
+  // =====================================================
 
-  const handleSubmit = (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit =
 
-    e.preventDefault();
+    async (
 
+      e: React.FormEvent
 
-    // ---------------------------------------
-    // VALIDATE ACCOUNT NAME
-    // ---------------------------------------
-
-    if (
-      !accountName.trim()
-    ) {
-
-      setError(
-        "Please enter an account name."
-      );
-
-      return;
-
-    }
+    ) => {
 
 
-    // ---------------------------------------
-    // VALIDATE ACCOUNT TYPE
-    // ---------------------------------------
-
-    if (
-      !accountType
-    ) {
-
-      setError(
-        "Please select an account type."
-      );
-
-      return;
-
-    }
+      e.preventDefault();
 
 
-    // ---------------------------------------
-    // VALIDATE BALANCE
-    // ---------------------------------------
+      // =================================================
+      // VALIDATE ACCOUNT NAME
+      // =================================================
 
-    if (
+      if (
 
-      balance === "" ||
+        !accountName.trim()
 
-      Number(balance) < 0 ||
+      ) {
 
-      isNaN(
-        Number(balance)
-      )
+        setError(
 
-    ) {
+          "Please enter an account name."
 
-      setError(
-        "Please enter a valid balance."
-      );
+        );
 
-      return;
+        return;
 
-    }
+      }
 
 
-    // ---------------------------------------
-    // PREVENT DUPLICATE ACCOUNT NAME
-    // ---------------------------------------
+      // =================================================
+      // VALIDATE ACCOUNT TYPE
+      // =================================================
 
-    const duplicateName =
-      accounts.some(
+      if (
 
-        (
-          currentAccount
-        ) =>
+        !accountType
 
-          currentAccount.name
-            .trim()
-            .toLowerCase() ===
+      ) {
+
+        setError(
+
+          "Please select an account type."
+
+        );
+
+        return;
+
+      }
+
+
+      // =================================================
+      // VALIDATE BALANCE
+      // =================================================
+
+      if (
+
+        balance === ""
+
+        ||
+
+        Number(balance) < 0
+
+        ||
+
+        isNaN(
+
+          Number(balance)
+
+        )
+
+      ) {
+
+        setError(
+
+          "Please enter a valid balance."
+
+        );
+
+        return;
+
+      }
+
+
+      // =================================================
+      // PREVENT DUPLICATE ACCOUNT NAME
+      // =================================================
+
+      const duplicateName =
+
+        accounts.some(
+
+          (
+
+            currentAccount
+
+          ) =>
+
+            currentAccount.name
+              .trim()
+              .toLowerCase()
+
+            ===
 
             accountName
               .trim()
-              .toLowerCase() &&
+              .toLowerCase()
 
-          currentAccount.name !==
-            account.name
+            &&
 
-      );
+            currentAccount._id !==
+            account._id
 
-
-    if (
-      duplicateName
-    ) {
-
-      setError(
-        "An account with this name already exists."
-      );
-
-      return;
-
-    }
+        );
 
 
-    // ---------------------------------------
-    // CREATE UPDATED ACCOUNT
-    // ---------------------------------------
+      if (
 
-    const updatedAccount:
-      Account = {
+        duplicateName
 
-        name:
-          accountName.trim(),
+      ) {
 
-        type:
-          accountType,
+        setError(
 
-        balance:
-          Number(balance),
+          "An account with this name already exists."
 
-      };
+        );
+
+        return;
+
+      }
 
 
-    // ---------------------------------------
-    // SEND OLD + UPDATED ACCOUNT
-    // ---------------------------------------
+      // =================================================
+      // CREATE UPDATED ACCOUNT
+      // =================================================
 
-    onEditAccount(
+      const updatedAccount:
 
-      account,
+        Account = {
 
-      updatedAccount
+          // Keep account ID
 
-    );
-
-
-    // ---------------------------------------
-    // CLEAR ERROR
-    // ---------------------------------------
-
-    setError(
-      ""
-    );
+          _id:
+            account._id,
 
 
-    // ---------------------------------------
-    // CLOSE MODAL
-    // ---------------------------------------
+          name:
 
-    onClose();
-
-  };
+            accountName
+              .trim(),
 
 
-  // =========================================
+          type:
+            accountType,
+
+
+          balance:
+
+            Number(
+              balance
+            ),
+
+        };
+
+
+      try {
+
+
+        // ===============================================
+        // START SAVING
+        // ===============================================
+
+        setIsSaving(
+          true
+        );
+
+
+        setError(
+          ""
+        );
+
+
+        // ===============================================
+        // SEND UPDATED ACCOUNT ONLY
+        // ===============================================
+
+        await onEditAccount(
+
+          updatedAccount
+
+        );
+
+
+        // ===============================================
+        // CLOSE MODAL ONLY AFTER SUCCESS
+        // ===============================================
+
+        onClose();
+
+
+      } catch (error) {
+
+
+        console.error(
+
+          "Error editing account:",
+
+          error
+
+        );
+
+
+        setError(
+
+          error instanceof Error
+
+            ? error.message
+
+            : "Failed to update account."
+
+        );
+
+
+      } finally {
+
+
+        setIsSaving(
+          false
+        );
+
+      }
+
+    };
+
+
+  // =====================================================
   // RENDER
-  // =========================================
+  // =====================================================
 
   return (
 
@@ -240,7 +394,15 @@ function EditAccountModal({
 
       className="modal-overlay"
 
-      onClick={onClose}
+      onClick={
+
+        isSaving
+
+          ? undefined
+
+          : onClose
+
+      }
 
     >
 
@@ -250,30 +412,41 @@ function EditAccountModal({
         className="add-account-modal"
 
         onClick={
-          (e) =>
+
+          (
+            e
+          ) =>
+
             e.stopPropagation()
+
         }
 
       >
 
 
-        {/* =====================================
+        {/* =============================================
             HEADER
-        ====================================== */}
+        ============================================= */}
 
         <div className="modal-header">
 
 
           <div>
 
+
             <h2>
+
               Edit Account
+
             </h2>
 
 
             <p>
+
               Update your account details.
+
             </p>
+
 
           </div>
 
@@ -284,13 +457,23 @@ function EditAccountModal({
 
             className="modal-close"
 
-            onClick={onClose}
+            onClick={
+              onClose
+            }
+
+            disabled={
+              isSaving
+            }
 
             aria-label="Close"
 
           >
 
-            <X size={18} />
+
+            <X
+              size={18}
+            />
+
 
           </button>
 
@@ -298,9 +481,9 @@ function EditAccountModal({
         </div>
 
 
-        {/* =====================================
+        {/* =============================================
             FORM
-        ====================================== */}
+        ============================================= */}
 
         <form
 
@@ -319,7 +502,9 @@ function EditAccountModal({
 
 
             <label>
+
               Account name
+
             </label>
 
 
@@ -333,18 +518,30 @@ function EditAccountModal({
                 accountName
               }
 
+              disabled={
+                isSaving
+              }
+
               onChange={
-                (e) => {
+
+                (
+                  e
+                ) => {
+
 
                   setAccountName(
+
                     e.target.value
+
                   );
+
 
                   setError(
                     ""
                   );
 
                 }
+
               }
 
             />
@@ -359,7 +556,9 @@ function EditAccountModal({
 
 
             <label>
+
               Account type
+
             </label>
 
 
@@ -369,40 +568,67 @@ function EditAccountModal({
                 accountType
               }
 
+              disabled={
+                isSaving
+              }
+
               onChange={
-                (e) => {
+
+                (
+                  e
+                ) => {
+
 
                   setAccountType(
+
                     e.target.value
+
                   );
+
 
                   setError(
                     ""
                   );
 
                 }
+
               }
 
             >
 
 
               <option value="cash">
+
                 Cash
+
               </option>
 
 
               <option value="bank">
+
                 Bank Account
+
               </option>
 
 
               <option value="wallet">
+
                 Online Wallet
+
               </option>
 
 
               <option value="savings">
+
                 Savings Account
+
+              </option>
+
+
+              <option value="other">
+
+                Other
+
               </option>
 
 
@@ -418,7 +644,9 @@ function EditAccountModal({
 
 
             <label>
+
               Current balance
+
             </label>
 
 
@@ -426,7 +654,9 @@ function EditAccountModal({
 
 
               <span>
+
                 ₹
+
               </span>
 
 
@@ -442,18 +672,30 @@ function EditAccountModal({
                   balance
                 }
 
+                disabled={
+                  isSaving
+                }
+
                 onChange={
-                  (e) => {
+
+                  (
+                    e
+                  ) => {
+
 
                     setBalance(
+
                       e.target.value
+
                     );
+
 
                     setError(
                       ""
                     );
 
                   }
+
                 }
 
               />
@@ -465,7 +707,7 @@ function EditAccountModal({
           </div>
 
 
-          {/* ERROR MESSAGE */}
+          {/* ERROR */}
 
           {error && (
 
@@ -489,7 +731,13 @@ function EditAccountModal({
 
               className="cancel-button"
 
-              onClick={onClose}
+              onClick={
+                onClose
+              }
+
+              disabled={
+                isSaving
+              }
 
             >
 
@@ -504,9 +752,21 @@ function EditAccountModal({
 
               className="add-account-button"
 
+              disabled={
+                isSaving
+              }
+
             >
 
-              Save Changes
+              {
+
+                isSaving
+
+                  ? "Saving..."
+
+                  : "Save Changes"
+
+              }
 
             </button>
 

@@ -9,7 +9,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import AddAccountModal from "../components/AddAccountModal";
 import Sidebar from "../components/Sidebar";
@@ -17,66 +20,63 @@ import Sidebar from "../components/Sidebar";
 import "./Accounts.css";
 
 
+// =====================================================
+// ACCOUNT INTERFACE
+// =====================================================
+
 interface Account {
+
+  _id?: string;
+
   name: string;
+
   type: string;
+
   balance: number;
+
 }
 
 
+// =====================================================
+// COMPONENT
+// =====================================================
+
 function Accounts() {
 
-  // ================= ACCOUNTS =================
 
-  const [accounts, setAccounts] =
-    useState<Account[]>(() => {
+  // =====================================================
+  // ACCOUNTS STATE
+  // =====================================================
 
-      const savedAccounts =
-        localStorage.getItem(
-          "spendwise_accounts"
-        );
-
-      if (savedAccounts) {
-
-        return JSON.parse(
-          savedAccounts
-        );
-
-      }
+  const [
+    accounts,
+    setAccounts,
+  ] = useState<Account[]>([]);
 
 
-      return [
+  // =====================================================
+  // LOADING STATE
+  // =====================================================
 
-        {
-          name: "Cash",
-          type: "cash",
-          balance: 5000,
-        },
-
-        {
-          name: "Bank Account",
-          type: "bank",
-          balance: 35420,
-        },
-
-        {
-          name: "Online Wallet",
-          type: "wallet",
-          balance: 12000,
-        },
-
-        {
-          name: "Savings Account",
-          type: "savings",
-          balance: 23000,
-        },
-
-      ];
-
-    });
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
 
-  // ================= MODAL STATES =================
+  // =====================================================
+  // ERROR STATE
+  // =====================================================
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  // =====================================================
+  // ADD ACCOUNT MODAL
+  // =====================================================
 
   const [
     showAddAccount,
@@ -84,11 +84,19 @@ function Accounts() {
   ] = useState(false);
 
 
+  // =====================================================
+  // EDIT ACCOUNT MODAL
+  // =====================================================
+
   const [
     editingAccount,
     setEditingAccount,
   ] = useState<Account | null>(null);
 
+
+  // =====================================================
+  // DELETE ACCOUNT MODAL
+  // =====================================================
 
   const [
     deleteAccount,
@@ -96,36 +104,223 @@ function Accounts() {
   ] = useState<Account | null>(null);
 
 
-  // ================= SAVE ACCOUNTS =================
+  // =====================================================
+  // GET AUTH TOKEN
+  // =====================================================
+
+  const getToken = () => {
+
+    return (
+
+      localStorage.getItem("token")
+
+      ||
+
+      sessionStorage.getItem("token")
+
+    );
+
+  };
+
+
+  // =====================================================
+  // CONVERT FRONTEND TYPE TO BACKEND TYPE
+  //
+  // Frontend:
+  // cash
+  //
+  // Backend:
+  // Cash
+  // =====================================================
+
+  const convertToBackendType = (
+    type: string
+  ) => {
+
+    const normalizedType =
+      type.toLowerCase();
+
+
+    if (
+      normalizedType === "cash"
+    ) {
+
+      return "Cash";
+
+    }
+
+
+    if (
+      normalizedType === "bank"
+    ) {
+
+      return "Bank";
+
+    }
+
+
+    if (
+      normalizedType === "wallet"
+    ) {
+
+      return "Wallet";
+
+    }
+
+
+    if (
+      normalizedType === "savings"
+    ) {
+
+      return "Savings";
+
+    }
+
+
+    return "Other";
+
+  };
+
+
+  // =====================================================
+  // FETCH ACCOUNTS
+  // =====================================================
+
+  const fetchAccounts = async () => {
+
+    try {
+
+      setLoading(true);
+
+      setError("");
+
+
+      const token =
+        getToken();
+
+
+      if (!token) {
+
+        setError(
+          "You are not logged in."
+        );
+
+        return;
+
+      }
+
+
+      const response =
+        await fetch(
+
+          "http://localhost:5000/api/accounts",
+
+          {
+
+            method: "GET",
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+
+            },
+
+          }
+
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        setError(
+
+          data.message
+
+          ||
+
+          "Failed to fetch accounts."
+
+        );
+
+        return;
+
+      }
+
+
+      // ===============================================
+      // FORMAT BACKEND TYPES
+      //
+      // Backend:
+      // Cash, Bank, Wallet
+      //
+      // Frontend:
+      // cash, bank, wallet
+      // ===============================================
+
+      const formattedAccounts =
+        data.accounts.map(
+          (account: Account) => ({
+
+            ...account,
+
+            type:
+              account.type.toLowerCase(),
+
+          })
+        );
+
+
+      setAccounts(
+        formattedAccounts
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Fetch accounts error:",
+        error
+      );
+
+
+      setError(
+        "Unable to connect to the server."
+      );
+
+
+    } finally {
+
+      setLoading(
+        false
+      );
+
+    }
+
+  };
+
+
+  // =====================================================
+  // FETCH ON PAGE LOAD
+  // =====================================================
 
   useEffect(() => {
 
-    localStorage.setItem(
+    fetchAccounts();
 
-      "spendwise_accounts",
-
-      JSON.stringify(
-        accounts
-      )
-
-    );
+  }, []);
 
 
-    // Notify other components
-    // that accounts were updated
-
-    window.dispatchEvent(
-
-      new Event(
-        "spendwise_accounts_updated"
-      )
-
-    );
-
-  }, [accounts]);
-
-
-  // ================= TOTAL BALANCE =================
+  // =====================================================
+  // TOTAL BALANCE
+  // =====================================================
 
   const totalBalance =
     accounts.reduce(
@@ -143,37 +338,175 @@ function Accounts() {
     );
 
 
-  // ================= ADD ACCOUNT =================
+  // =====================================================
+  // ADD ACCOUNT
+  // =====================================================
 
-  const handleAddAccount = (
-    account: Account
-  ) => {
+  const handleAddAccount =
+    async (
+      account: Account
+    ) => {
 
-    setAccounts(
-      (currentAccounts) => [
+      try {
 
-        ...currentAccounts,
-
-        account,
-
-      ]
-    );
+        setError("");
 
 
-    setShowAddAccount(
-      false
-    );
-
-  };
+        const token =
+          getToken();
 
 
-  // ================= DELETE ACCOUNT =================
+        if (!token) {
+
+          setError(
+            "You are not logged in."
+          );
+
+          return;
+
+        }
+
+
+        const backendType =
+          convertToBackendType(
+            account.type
+          );
+
+
+        // ===============================================
+        // CREATE ACCOUNT
+        // ===============================================
+
+        const response =
+          await fetch(
+
+            "http://localhost:5000/api/accounts",
+
+            {
+
+              method:
+                "POST",
+
+
+              headers: {
+
+                "Content-Type":
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`,
+
+              },
+
+
+              body:
+                JSON.stringify({
+
+                  name:
+                    account.name,
+
+                  type:
+                    backendType,
+
+                  balance:
+                    Number(
+                      account.balance
+                    ),
+
+                }),
+
+            }
+
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          setError(
+
+            data.message
+
+            ||
+
+            "Failed to create account."
+
+          );
+
+          return;
+
+        }
+
+
+        // ===============================================
+        // FORMAT RESPONSE
+        // ===============================================
+
+        const newAccount: Account = {
+
+          ...data.account,
+
+          type:
+            data.account.type.toLowerCase(),
+
+        };
+
+
+        // ===============================================
+        // UPDATE STATE
+        // ===============================================
+
+        setAccounts(
+
+          (
+            currentAccounts
+          ) => [
+
+            ...currentAccounts,
+
+            newAccount,
+
+          ]
+
+        );
+
+
+        // ===============================================
+        // CLOSE MODAL
+        // ===============================================
+
+        setShowAddAccount(
+          false
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Add account error:",
+          error
+        );
+
+
+        setError(
+          "Unable to connect to the server."
+        );
+
+      }
+
+    };
+
+
+  // =====================================================
+  // OPEN DELETE MODAL
+  // =====================================================
 
   const handleDeleteAccount = (
     account: Account
   ) => {
-
-    // Open custom confirmation modal
 
     setDeleteAccount(
       account
@@ -182,83 +515,334 @@ function Accounts() {
   };
 
 
-  // ================= CONFIRM DELETE =================
+  // =====================================================
+  // CONFIRM DELETE
+  // =====================================================
 
-  const confirmDeleteAccount = () => {
+  const confirmDeleteAccount =
+    async () => {
 
-    if (
-      !deleteAccount
-    ) {
+      if (!deleteAccount) {
 
-      return;
+        return;
 
-    }
-
-
-    setAccounts(
-      (currentAccounts) =>
-
-        currentAccounts.filter(
-
-          (account) =>
-
-            account.name !==
-            deleteAccount.name
-
-        )
-
-    );
+      }
 
 
-    // Close modal
+      try {
 
-    setDeleteAccount(
-      null
-    );
-
-  };
+        setError("");
 
 
-  // ================= EDIT ACCOUNT =================
-
-  const handleEditAccount = () => {
-
-    if (
-      !editingAccount
-    ) {
-
-      return;
-
-    }
+        const token =
+          getToken();
 
 
-    setAccounts(
-      (currentAccounts) =>
+        if (!token) {
 
-        currentAccounts.map(
+          setError(
+            "You are not logged in."
+          );
 
-          (account) =>
+          return;
 
-            account.name ===
-            editingAccount.name
-
-              ? editingAccount
-
-              : account
-
-        )
-
-    );
+        }
 
 
-    setEditingAccount(
-      null
-    );
+        if (!deleteAccount._id) {
 
-  };
+          setError(
+            "Account ID is missing."
+          );
+
+          return;
+
+        }
 
 
-  // ================= ACCOUNT ICON =================
+        // ===============================================
+        // DELETE ACCOUNT
+        // ===============================================
+
+        const response =
+          await fetch(
+
+            `http://localhost:5000/api/accounts/${deleteAccount._id}`,
+
+            {
+
+              method:
+                "DELETE",
+
+
+              headers: {
+
+                Authorization:
+                  `Bearer ${token}`,
+
+                "Content-Type":
+                  "application/json",
+
+              },
+
+            }
+
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          setError(
+
+            data.message
+
+            ||
+
+            "Failed to delete account."
+
+          );
+
+          return;
+
+        }
+
+
+        // ===============================================
+        // UPDATE STATE
+        // ===============================================
+
+        setAccounts(
+
+          (
+            currentAccounts
+          ) =>
+
+            currentAccounts.filter(
+
+              (
+                account
+              ) =>
+
+                account._id !==
+                deleteAccount._id
+
+            )
+
+        );
+
+
+        setDeleteAccount(
+          null
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Delete account error:",
+          error
+        );
+
+
+        setError(
+          "Unable to connect to the server."
+        );
+
+      }
+
+    };
+
+
+  // =====================================================
+  // EDIT ACCOUNT
+  // =====================================================
+
+  const handleEditAccount =
+    async () => {
+
+      if (!editingAccount) {
+
+        return;
+
+      }
+
+
+      try {
+
+        setError("");
+
+
+        const token =
+          getToken();
+
+
+        if (!token) {
+
+          setError(
+            "You are not logged in."
+          );
+
+          return;
+
+        }
+
+
+        if (!editingAccount._id) {
+
+          setError(
+            "Account ID is missing."
+          );
+
+          return;
+
+        }
+
+
+        const backendType =
+          convertToBackendType(
+            editingAccount.type
+          );
+
+
+        // ===============================================
+        // UPDATE ACCOUNT
+        // ===============================================
+
+        const response =
+          await fetch(
+
+            `http://localhost:5000/api/accounts/${editingAccount._id}`,
+
+            {
+
+              method:
+                "PUT",
+
+
+              headers: {
+
+                "Content-Type":
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`,
+
+              },
+
+
+              body:
+                JSON.stringify({
+
+                  name:
+                    editingAccount.name,
+
+                  type:
+                    backendType,
+
+                  balance:
+                    Number(
+                      editingAccount.balance
+                    ),
+
+                }),
+
+            }
+
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          setError(
+
+            data.message
+
+            ||
+
+            "Failed to update account."
+
+          );
+
+          return;
+
+        }
+
+
+        // ===============================================
+        // FORMAT RESPONSE
+        // ===============================================
+
+        const updatedAccount: Account = {
+
+          ...data.account,
+
+          type:
+            data.account.type.toLowerCase(),
+
+        };
+
+
+        // ===============================================
+        // UPDATE STATE
+        // ===============================================
+
+        setAccounts(
+
+          (
+            currentAccounts
+          ) =>
+
+            currentAccounts.map(
+
+              (
+                account
+              ) =>
+
+                account._id ===
+                updatedAccount._id
+
+                  ? updatedAccount
+
+                  : account
+
+            )
+
+        );
+
+
+        setEditingAccount(
+          null
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Edit account error:",
+          error
+        );
+
+
+        setError(
+          "Unable to connect to the server."
+        );
+
+      }
+
+    };
+
+
+  // =====================================================
+  // ACCOUNT ICON
+  // =====================================================
 
   const getAccountIcon = (
     type: string
@@ -325,7 +909,58 @@ function Accounts() {
   };
 
 
-  // ================= PAGE =================
+  // =====================================================
+  // ACCOUNT DESCRIPTION
+  // =====================================================
+
+  const getAccountDescription = (
+    type: string
+  ) => {
+
+    if (
+      type === "cash"
+    ) {
+
+      return "Physical money";
+
+    }
+
+
+    if (
+      type === "bank"
+    ) {
+
+      return "Bank account";
+
+    }
+
+
+    if (
+      type === "wallet"
+    ) {
+
+      return "Digital money";
+
+    }
+
+
+    if (
+      type === "savings"
+    ) {
+
+      return "Long-term savings";
+
+    }
+
+
+    return "Financial account";
+
+  };
+
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
 
@@ -341,7 +976,9 @@ function Accounts() {
       >
 
 
-        {/* ================= HEADER ================= */}
+        {/* =============================================
+            HEADER
+        ============================================== */}
 
         <div
           className="accounts-page-header"
@@ -385,14 +1022,50 @@ function Accounts() {
         </div>
 
 
-        {/* ================= SUMMARY ================= */}
+        {/* =============================================
+            ERROR
+        ============================================== */}
+
+        {error && (
+
+          <div
+            style={{
+
+              color:
+                "#dc2626",
+
+              backgroundColor:
+                "#fef2f2",
+
+              border:
+                "1px solid #fecaca",
+
+              padding:
+                "12px",
+
+              borderRadius:
+                "8px",
+
+              marginBottom:
+                "20px",
+
+            }}
+          >
+
+            {error}
+
+          </div>
+
+        )}
+
+
+        {/* =============================================
+            SUMMARY
+        ============================================== */}
 
         <section
           className="accounts-summary"
         >
-
-
-          {/* TOTAL BALANCE */}
 
           <div
             className="accounts-summary-card"
@@ -406,6 +1079,7 @@ function Accounts() {
             <strong>
 
               ₹
+
               {totalBalance.toLocaleString(
                 "en-IN"
               )}
@@ -419,8 +1093,6 @@ function Accounts() {
 
           </div>
 
-
-          {/* TOTAL ACCOUNTS */}
 
           <div
             className="accounts-summary-card"
@@ -445,8 +1117,6 @@ function Accounts() {
           </div>
 
 
-          {/* LARGEST ACCOUNT */}
-
           <div
             className="accounts-summary-card"
           >
@@ -464,15 +1134,10 @@ function Accounts() {
                 accounts.length > 0
 
                   ? Math.max(
-
                       ...accounts.map(
-
                         (account) =>
-
                           account.balance
-
                       )
-
                     )
 
                   : 0
@@ -490,16 +1155,16 @@ function Accounts() {
 
           </div>
 
-
         </section>
 
 
-        {/* ================= ACCOUNT LIST ================= */}
+        {/* =============================================
+            ACCOUNTS LIST
+        ============================================== */}
 
         <section
           className="accounts-page-list"
         >
-
 
           <div
             className="accounts-page-list-header"
@@ -522,246 +1187,201 @@ function Accounts() {
           </div>
 
 
-          <div
-            className="accounts-page-grid"
-          >
+          {loading ? (
 
+            <p>
+              Loading your accounts...
+            </p>
 
-            {/* ================= ACCOUNT CARDS ================= */}
+          ) : (
 
-            {accounts.map(
-              (account) => (
-
-                <article
-
-                  className="account-detail-card"
-
-                  key={
-                    account.name
-                  }
-
-                >
-
-
-                  {/* TOP */}
-
-                  <div
-                    className="account-detail-top"
-                  >
-
-
-                    <div
-
-                      className={
-                        `account-detail-icon ${account.type}`
-                      }
-
-                    >
-
-                      {getAccountIcon(
-                        account.type
-                      )}
-
-                    </div>
-
-
-                    {/* ACTION BUTTONS */}
-
-                    <div
-                      className="account-detail-actions"
-                    >
-
-
-                      {/* EDIT */}
-
-                      <button
-
-                        className="account-edit-button"
-
-                        onClick={() =>
-                          setEditingAccount({
-
-                            ...account,
-
-                          })
-                        }
-
-                        title="Edit account"
-
-                      >
-
-                        <Pencil
-                          size={16}
-                        />
-
-                      </button>
-
-
-                      {/* DELETE */}
-
-                      <button
-
-                        className="account-delete-button"
-
-                        onClick={() =>
-                          handleDeleteAccount(
-                            account
-                          )
-                        }
-
-                        title="Delete account"
-
-                      >
-
-                        <Trash2
-                          size={16}
-                        />
-
-                      </button>
-
-
-                    </div>
-
-                  </div>
-
-
-                  {/* INFO */}
-
-                  <div
-                    className="account-detail-info"
-                  >
-
-                    <h3>
-
-                      {account.name}
-
-                    </h3>
-
-
-                    <span>
-
-                      {account.type ===
-                        "cash" &&
-
-                        "Physical money"
-                      }
-
-
-                      {account.type ===
-                        "bank" &&
-
-                        "Bank account"
-                      }
-
-
-                      {account.type ===
-                        "wallet" &&
-
-                        "Digital money"
-                      }
-
-
-                      {account.type ===
-                        "savings" &&
-
-                        "Long-term savings"
-                      }
-
-
-                      {![
-                        "cash",
-                        "bank",
-                        "wallet",
-                        "savings",
-                      ].includes(
-                        account.type
-                      ) &&
-
-                        "Financial account"
-                      }
-
-                    </span>
-
-                  </div>
-
-
-                  {/* BALANCE */}
-
-                  <div
-                    className="account-detail-balance"
-                  >
-
-                    <span>
-                      Current Balance
-                    </span>
-
-
-                    <strong>
-
-                      ₹
-
-                      {account.balance.toLocaleString(
-                        "en-IN"
-                      )}
-
-                    </strong>
-
-                  </div>
-
-
-                </article>
-
-              )
-            )}
-
-
-            {/* ================= ADD CARD ================= */}
-
-            <button
-
-              className="account-add-card"
-
-              onClick={() =>
-                setShowAddAccount(
-                  true
-                )
-              }
-
+            <div
+              className="accounts-page-grid"
             >
 
+              {accounts.map(
 
-              <div
-                className="account-add-icon"
+                (
+                  account
+                ) => (
+
+                  <article
+
+                    className="account-detail-card"
+
+                    key={
+                      account._id ||
+                      account.name
+                    }
+
+                  >
+
+                    <div
+                      className="account-detail-top"
+                    >
+
+                      <div
+
+                        className={
+                          `account-detail-icon ${account.type}`
+                        }
+
+                      >
+
+                        {getAccountIcon(
+                          account.type
+                        )}
+
+                      </div>
+
+
+                      <div
+                        className="account-detail-actions"
+                      >
+
+                        <button
+
+                          className="account-edit-button"
+
+                          onClick={() =>
+                            setEditingAccount({
+
+                              ...account,
+
+                            })
+                          }
+
+                          title="Edit account"
+
+                        >
+
+                          <Pencil
+                            size={16}
+                          />
+
+                        </button>
+
+
+                        <button
+
+                          className="account-delete-button"
+
+                          onClick={() =>
+                            handleDeleteAccount(
+                              account
+                            )
+                          }
+
+                          title="Delete account"
+
+                        >
+
+                          <Trash2
+                            size={16}
+                          />
+
+                        </button>
+
+                      </div>
+
+                    </div>
+
+
+                    <div
+                      className="account-detail-info"
+                    >
+
+                      <h3>
+
+                        {account.name}
+
+                      </h3>
+
+
+                      <span>
+
+                        {getAccountDescription(
+                          account.type
+                        )}
+
+                      </span>
+
+                    </div>
+
+
+                    <div
+                      className="account-detail-balance"
+                    >
+
+                      <span>
+                        Current Balance
+                      </span>
+
+
+                      <strong>
+
+                        ₹
+
+                        {account.balance.toLocaleString(
+                          "en-IN"
+                        )}
+
+                      </strong>
+
+                    </div>
+
+                  </article>
+
+                )
+
+              )}
+
+
+              <button
+
+                className="account-add-card"
+
+                onClick={() =>
+                  setShowAddAccount(
+                    true
+                  )
+                }
+
               >
 
-                <Plus
-                  size={24}
-                />
+                <div
+                  className="account-add-icon"
+                >
 
-              </div>
+                  <Plus
+                    size={24}
+                  />
 
-
-              <strong>
-                Add New Account
-              </strong>
-
-
-              <span>
-                Track another source
-                of money
-              </span>
+                </div>
 
 
-            </button>
+                <strong>
+                  Add New Account
+                </strong>
 
 
-          </div>
+                <span>
+                  Track another source
+                  of money
+                </span>
 
+              </button>
+
+            </div>
+
+          )}
 
         </section>
 
 
-        {/* ================= ADD ACCOUNT MODAL ================= */}
+        {/* =============================================
+            ADD ACCOUNT MODAL
+        ============================================== */}
 
         {showAddAccount && (
 
@@ -786,7 +1406,9 @@ function Accounts() {
         )}
 
 
-        {/* ================= EDIT MODAL ================= */}
+        {/* =============================================
+            EDIT ACCOUNT MODAL
+        ============================================== */}
 
         {editingAccount && (
 
@@ -797,7 +1419,6 @@ function Accounts() {
             <div
               className="edit-account-modal"
             >
-
 
               <div
                 className="edit-account-header"
@@ -832,11 +1453,8 @@ function Accounts() {
 
                 </button>
 
-
               </div>
 
-
-              {/* ACCOUNT NAME */}
 
               <label>
                 Account name
@@ -866,7 +1484,59 @@ function Accounts() {
               />
 
 
-              {/* BALANCE */}
+              <label>
+                Account type
+              </label>
+
+
+              <select
+
+                value={
+                  editingAccount.type
+                }
+
+                onChange={
+                  (event) =>
+
+                    setEditingAccount({
+
+                      ...editingAccount,
+
+                      type:
+                        event.target.value,
+
+                    })
+
+                }
+
+              >
+
+                <option value="cash">
+                  Cash
+                </option>
+
+
+                <option value="bank">
+                  Bank Account
+                </option>
+
+
+                <option value="wallet">
+                  Wallet
+                </option>
+
+
+                <option value="savings">
+                  Savings
+                </option>
+
+
+                <option value="other">
+                  Other
+                </option>
+
+              </select>
+
 
               <label>
                 Current balance
@@ -891,7 +1561,6 @@ function Accounts() {
                       ...editingAccount,
 
                       balance:
-
                         Number(
                           event.target.value
                         ),
@@ -903,12 +1572,9 @@ function Accounts() {
               />
 
 
-              {/* BUTTONS */}
-
               <div
                 className="edit-account-buttons"
               >
-
 
                 <button
 
@@ -937,9 +1603,7 @@ function Accounts() {
 
                 </button>
 
-
               </div>
-
 
             </div>
 
@@ -948,7 +1612,9 @@ function Accounts() {
         )}
 
 
-        {/* ================= DELETE MODAL ================= */}
+        {/* =============================================
+            DELETE ACCOUNT MODAL
+        ============================================== */}
 
         {deleteAccount && (
 
@@ -964,7 +1630,6 @@ function Accounts() {
 
           >
 
-
             <div
 
               className="delete-account-modal"
@@ -975,9 +1640,6 @@ function Accounts() {
               }
 
             >
-
-
-              {/* WARNING ICON */}
 
               <div
                 className="delete-warning-icon"
@@ -990,14 +1652,10 @@ function Accounts() {
               </div>
 
 
-              {/* TITLE */}
-
               <h2>
                 Delete Account?
               </h2>
 
-
-              {/* DESCRIPTION */}
 
               <p>
 
@@ -1016,8 +1674,6 @@ function Accounts() {
               </p>
 
 
-              {/* WARNING */}
-
               <span
                 className="delete-warning-text"
               >
@@ -1028,12 +1684,9 @@ function Accounts() {
               </span>
 
 
-              {/* ACTIONS */}
-
               <div
                 className="delete-account-actions"
               >
-
 
                 <button
 
@@ -1070,12 +1723,9 @@ function Accounts() {
 
                 </button>
 
-
               </div>
 
-
             </div>
-
 
           </div>
 
@@ -1083,7 +1733,6 @@ function Accounts() {
 
 
       </section>
-
 
     </main>
 
